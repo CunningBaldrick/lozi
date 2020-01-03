@@ -1,0 +1,4 @@
+Parameters which we we want to compute.  These are either copied from Data (if
+we are unhappy with the accuracy) or created from nothing if the parameters are
+new.  The output of the computation, if any, will be in the file "result" inside
+the directory.
