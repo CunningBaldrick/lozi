@@ -1,0 +1,1396 @@
+-- Parameters --
+A = 101 / 100
+B = 1 / 1
+Accuracy =  0.10
+
+-- Initial Partition --
+Polygon: Number of vertices: 3
+
+Vertex 1:
+X: 0
+Y: 0
+Z: 1
+
+Vertex 2:
+X: -1
+Y: 0
+Z: 0
+
+Vertex 3:
+X: 0
+Y: -1
+Z: 0
+
+Symbol sequence: LL
+
+----
+
+Polygon: Number of vertices: 3
+
+Vertex 1:
+X: 0
+Y: 0
+Z: 1
+
+Vertex 2:
+X: 0
+Y: -1
+Z: 0
+
+Vertex 3:
+X: 1
+Y: 0
+Z: 0
+
+Symbol sequence: LR
+
+----
+
+Polygon: Number of vertices: 3
+
+Vertex 1:
+X: 0
+Y: 0
+Z: 1
+
+Vertex 2:
+X: 0
+Y: 1
+Z: 0
+
+Vertex 3:
+X: -1
+Y: 0
+Z: 0
+
+Symbol sequence: RL
+
+----
+
+Polygon: Number of vertices: 3
+
+Vertex 1:
+X: 0
+Y: 0
+Z: 1
+
+Vertex 2:
+X: 1
+Y: 0
+Z: 0
+
+Vertex 3:
+X: 0
+Y: 1
+Z: 0
+
+Symbol sequence: RR
+
+=> Calculating spectral radii
+
+  => Computing upper transition matrix
+  <= Done
+
+  Size: 4
+
+  => Computing spectral radius
+GCD: 1
+  <= Done
+
+  1.99999 <= spectral radius <= 2.00001
+  Entropy (natural logarithm): 0.6931
+
+  => Trimming matrix
+GCD: 1
+  <= Done
+
+  New size: 4
+
+  => Computing lower transition matrix
+  <= Done
+
+  Size: 0
+
+  => Computing spectral radius
+  <= Done
+
+  0.00000E+00 <= spectral radius <= 0.00000E+00
+
+  Best estimate so far: 0.00000E+00 <= Entropy <= 0.69316
+
+  => Refining partition
+  <= Done
+
+  Partition depth: 2
+  Number of partition elements: 8
+
+  => Computing upper transition matrix
+  <= Done
+
+  Size: 8
+
+  => Computing spectral radius
+GCD: 1
+  <= Done
+
+  1.99999 <= spectral radius <= 2.00001
+  Entropy (natural logarithm): 0.6931
+
+  => Trimming matrix
+GCD: 1
+  <= Done
+
+  New size: 8
+
+  => Computing lower transition matrix
+  <= Done
+
+  Size: 4
+
+  => Computing spectral radius
+GCD: 1
+GCD: 1
+  <= Done
+
+  0.99999 <= spectral radius <= 1.00001
+  Entropy (natural logarithm): 0.0000
+
+  Best estimate so far: 0.00000E+00 <= Entropy <= 0.69316
+
+  => Refining partition
+  <= Done
+
+  Partition depth: 3
+  Number of partition elements: 16
+
+  => Computing upper transition matrix
+  <= Done
+
+  Size: 16
+
+  => Computing spectral radius
+GCD: 1
+  <= Done
+
+  1.72394 <= spectral radius <= 1.72396
+  Entropy (natural logarithm): 0.5446
+
+  => Trimming matrix
+GCD: 1
+  <= Done
+
+  New size: 16
+
+  => Computing lower transition matrix
+  <= Done
+
+  Size: 12
+
+  => Computing spectral radius
+GCD: 1
+GCD: 1
+  <= Done
+
+  0.99999 <= spectral radius <= 1.00001
+  Entropy (natural logarithm): 0.0000
+
+  Best estimate so far: 0.00000E+00 <= Entropy <= 0.54463
+
+  => Refining partition
+  <= Done
+
+  Partition depth: 4
+  Number of partition elements: 26
+
+  => Computing upper transition matrix
+  <= Done
+
+  Size: 26
+
+  => Computing spectral radius
+GCD: 1
+  <= Done
+
+  1.66190 <= spectral radius <= 1.66192
+  Entropy (natural logarithm): 0.5080
+
+  => Trimming matrix
+GCD: 1
+  <= Done
+
+  New size: 26
+
+  => Computing lower transition matrix
+  <= Done
+
+  Size: 22
+
+  => Computing spectral radius
+GCD: 1
+GCD: 1
+  <= Done
+
+  0.99999 <= spectral radius <= 1.00001
+  Entropy (natural logarithm): 0.0000
+
+  Best estimate so far: 0.00000E+00 <= Entropy <= 0.50798
+
+  => Refining partition
+  <= Done
+
+  Partition depth: 5
+  Number of partition elements: 42
+
+  => Computing upper transition matrix
+  <= Done
+
+  Size: 42
+
+  => Computing spectral radius
+GCD: 1
+  <= Done
+
+  1.36163 <= spectral radius <= 5.32590
+  Entropy (natural logarithm): 1.6726
+
+  => Trimming matrix
+GCD: 1
+  <= Done
+
+  New size: 42
+
+  => Computing lower transition matrix
+  <= Done
+
+  Size: 42
+
+  => Computing spectral radius
+GCD: 1
+GCD: 1
+  <= Done
+
+  0.99999 <= spectral radius <= 1.00001
+  Entropy (natural logarithm): 0.0000
+
+  Best estimate so far: 0.00000E+00 <= Entropy <= 0.50798
+
+  => Refining partition
+  <= Done
+
+  Partition depth: 6
+  Number of partition elements: 60
+
+  => Computing upper transition matrix
+  <= Done
+
+  Size: 60
+
+  => Computing spectral radius
+GCD: 1
+  <= Done
+
+  1.36245 <= spectral radius <= 3.90382
+  Entropy (natural logarithm): 1.3620
+
+  => Trimming matrix
+GCD: 1
+  <= Done
+
+  New size: 60
+
+  => Computing lower transition matrix
+  <= Done
+
+  Size: 96
+
+  => Computing spectral radius
+GCD: 1
+GCD: 1
+  <= Done
+
+  0.99999 <= spectral radius <= 1.00001
+  Entropy (natural logarithm): 0.0000
+
+  Best estimate so far: 0.00000E+00 <= Entropy <= 0.50798
+
+  => Refining partition
+  <= Done
+
+  Partition depth: 7
+  Number of partition elements: 82
+
+  => Computing upper transition matrix
+  <= Done
+
+  Size: 82
+
+  => Computing spectral radius
+GCD: 1
+  <= Done
+
+  1.43082 <= spectral radius <= 1.43084
+  Entropy (natural logarithm): 0.3583
+
+  => Trimming matrix
+GCD: 1
+  <= Done
+
+  New size: 82
+
+  => Computing lower transition matrix
+  <= Done
+
+  Size: 133
+
+  => Computing spectral radius
+GCD: 1
+GCD: 1
+  <= Done
+
+  0.99999 <= spectral radius <= 1.00001
+  Entropy (natural logarithm): 0.0000
+
+  Best estimate so far: 0.00000E+00 <= Entropy <= 0.35827
+
+  => Refining partition
+  <= Done
+
+  Partition depth: 8
+  Number of partition elements: 106
+
+  => Computing upper transition matrix
+  <= Done
+
+  Size: 106
+
+  => Computing spectral radius
+GCD: 1
+  <= Done
+
+  1.32901 <= spectral radius <= 3.38922
+  Entropy (natural logarithm): 1.2206
+
+  => Trimming matrix
+GCD: 1
+  <= Done
+
+  New size: 106
+
+  => Computing lower transition matrix
+  <= Done
+
+  Size: 206
+
+  => Computing spectral radius
+GCD: 1
+GCD: 1
+  <= Done
+
+  0.99999 <= spectral radius <= 1.00001
+  Entropy (natural logarithm): 0.0000
+
+  Best estimate so far: 0.00000E+00 <= Entropy <= 0.35827
+
+  => Refining partition
+  <= Done
+
+  Partition depth: 9
+  Number of partition elements: 138
+
+  => Computing upper transition matrix
+  <= Done
+
+  Size: 138
+
+  => Computing spectral radius
+GCD: 1
+  <= Done
+
+  1.31959 <= spectral radius <= 3.38515
+  Entropy (natural logarithm): 1.2194
+
+  => Trimming matrix
+GCD: 1
+  <= Done
+
+  New size: 138
+
+  => Computing lower transition matrix
+  <= Done
+
+  Size: 270
+
+  => Computing spectral radius
+GCD: 1
+GCD: 1
+  <= Done
+
+  0.99999 <= spectral radius <= 1.00001
+  Entropy (natural logarithm): 0.0000
+
+  Best estimate so far: 0.00000E+00 <= Entropy <= 0.35827
+
+  => Refining partition
+  <= Done
+
+  Partition depth: 10
+  Number of partition elements: 176
+
+  => Computing upper transition matrix
+  <= Done
+
+  Size: 176
+
+  => Computing spectral radius
+GCD: 1
+  <= Done
+
+  1.30696 <= spectral radius <= 3.34988
+  Entropy (natural logarithm): 1.2089
+
+  => Trimming matrix
+GCD: 1
+  <= Done
+
+  New size: 176
+
+  => Computing lower transition matrix
+  <= Done
+
+  Size: 353
+
+  => Computing spectral radius
+GCD: 1
+GCD: 1
+  <= Done
+
+  0.99999 <= spectral radius <= 1.00001
+  Entropy (natural logarithm): 0.0000
+
+  Best estimate so far: 0.00000E+00 <= Entropy <= 0.35827
+
+  => Refining partition
+  <= Done
+
+  Partition depth: 11
+  Number of partition elements: 226
+
+  => Computing upper transition matrix
+  <= Done
+
+  Size: 226
+
+  => Computing spectral radius
+GCD: 1
+  <= Done
+
+  1.36576 <= spectral radius <= 1.36579
+  Entropy (natural logarithm): 0.3117
+
+  => Trimming matrix
+GCD: 1
+  <= Done
+
+  New size: 226
+
+  => Computing lower transition matrix
+  <= Done
+
+  Size: 469
+
+  => Computing spectral radius
+GCD: 1
+GCD: 1
+  <= Done
+
+  0.99999 <= spectral radius <= 1.00001
+  Entropy (natural logarithm): 0.0000
+
+  Best estimate so far: 0.00000E+00 <= Entropy <= 0.31173
+
+  => Refining partition
+  <= Done
+
+  Partition depth: 12
+  Number of partition elements: 292
+
+  => Computing upper transition matrix
+  <= Done
+
+  Size: 292
+
+  => Computing spectral radius
+GCD: 1
+  <= Done
+
+  1.32381 <= spectral radius <= 1.32384
+  Entropy (natural logarithm): 0.2805
+
+  => Trimming matrix
+GCD: 1
+  <= Done
+
+  New size: 292
+
+  => Computing lower transition matrix
+  <= Done
+
+  Size: 589
+
+  => Computing spectral radius
+GCD: 1
+GCD: 1
+  <= Done
+
+  0.99999 <= spectral radius <= 1.00001
+  Entropy (natural logarithm): 0.0000
+
+  Best estimate so far: 0.00000E+00 <= Entropy <= 0.28054
+
+  => Refining partition
+  <= Done
+
+  Partition depth: 13
+  Number of partition elements: 370
+
+  => Computing upper transition matrix
+  <= Done
+
+  Size: 370
+
+  => Computing spectral radius
+GCD: 1
+  <= Done
+
+  1.30929 <= spectral radius <= 1.30933
+  Entropy (natural logarithm): 0.2695
+
+  => Trimming matrix
+GCD: 1
+  <= Done
+
+  New size: 370
+
+  => Computing lower transition matrix
+  <= Done
+
+  Size: 775
+
+  => Computing spectral radius
+GCD: 1
+GCD: 1
+  <= Done
+
+  0.99999 <= spectral radius <= 1.00001
+  Entropy (natural logarithm): 0.0000
+
+  Best estimate so far: 0.00000E+00 <= Entropy <= 0.26952
+
+  => Refining partition
+  <= Done
+
+  Partition depth: 14
+  Number of partition elements: 466
+
+  => Computing upper transition matrix
+  <= Done
+
+  Size: 466
+
+  => Computing spectral radius
+GCD: 1
+  <= Done
+
+  1.30624 <= spectral radius <= 1.30628
+  Entropy (natural logarithm): 0.2672
+
+  => Trimming matrix
+GCD: 1
+  <= Done
+
+  New size: 466
+
+  => Computing lower transition matrix
+  <= Done
+
+  Size: 956
+
+  => Computing spectral radius
+GCD: 1
+GCD: 1
+  <= Done
+
+  0.99999 <= spectral radius <= 1.00001
+  Entropy (natural logarithm): 0.0000
+
+  Best estimate so far: 0.00000E+00 <= Entropy <= 0.26718
+
+  => Refining partition
+  <= Done
+
+  Partition depth: 15
+  Number of partition elements: 582
+
+  => Computing upper transition matrix
+  <= Done
+
+  Size: 582
+
+  => Computing spectral radius
+GCD: 1
+  <= Done
+
+  1.30094 <= spectral radius <= 1.30099
+  Entropy (natural logarithm): 0.2631
+
+  => Trimming matrix
+GCD: 1
+  <= Done
+
+  New size: 582
+
+  => Computing lower transition matrix
+  <= Done
+
+  Size: 1202
+
+  => Computing spectral radius
+GCD: 1
+GCD: 1
+  <= Done
+
+  0.99999 <= spectral radius <= 1.00001
+  Entropy (natural logarithm): 0.0000
+
+  Best estimate so far: 0.00000E+00 <= Entropy <= 0.26313
+
+  => Refining partition
+  <= Done
+
+  Partition depth: 16
+  Number of partition elements: 722
+
+  => Computing upper transition matrix
+  <= Done
+
+  Size: 722
+
+  => Computing spectral radius
+GCD: 1
+  <= Done
+
+  1.29628 <= spectral radius <= 1.29641
+  Entropy (natural logarithm): 0.2596
+
+  => Trimming matrix
+GCD: 1
+  <= Done
+
+  New size: 722
+
+  => Computing lower transition matrix
+  <= Done
+
+  Size: 1512
+
+  => Computing spectral radius
+GCD: 1
+GCD: 2
+  <= Failed
+
+  Best estimate so far: 0.00000E+00 <= Entropy <= 0.25960
+
+  => Refining partition
+  <= Done
+
+  Partition depth: 17
+  Number of partition elements: 886
+
+  => Computing upper transition matrix
+  <= Done
+
+  Size: 886
+
+  => Computing spectral radius
+GCD: 1
+  <= Done
+
+  1.28819 <= spectral radius <= 1.28832
+  Entropy (natural logarithm): 0.2533
+
+  => Trimming matrix
+GCD: 1
+  <= Done
+
+  New size: 886
+
+  => Computing lower transition matrix
+  <= Done
+
+  Size: 1888
+
+  => Computing spectral radius
+GCD: 1
+GCD: 2
+  <= Failed
+
+  Best estimate so far: 0.00000E+00 <= Entropy <= 0.25334
+
+  => Refining partition
+  <= Done
+
+  Partition depth: 18
+  Number of partition elements: 1088
+
+  => Computing upper transition matrix
+  <= Done
+
+  Size: 1088
+
+  => Computing spectral radius
+GCD: 1
+  <= Done
+
+  1.28358 <= spectral radius <= 1.28373
+  Entropy (natural logarithm): 0.2498
+
+  => Trimming matrix
+GCD: 1
+  <= Done
+
+  New size: 1088
+
+  => Computing lower transition matrix
+  <= Done
+
+  Size: 2279
+
+  => Computing spectral radius
+GCD: 1
+GCD: 1
+GCD: 1
+  <= Done
+
+  1.11205 <= spectral radius <= 1.11207
+  Entropy (natural logarithm): 0.1062
+
+  Best estimate so far: 0.10620 <= Entropy <= 0.24977
+
+  => Refining partition
+  <= Done
+
+  Partition depth: 19
+  Number of partition elements: 1326
+
+  => Computing upper transition matrix
+  <= Done
+
+  Size: 1326
+
+  => Computing spectral radius
+GCD: 1
+  <= Done
+
+  1.28296 <= spectral radius <= 1.28313
+  Entropy (natural logarithm): 0.2493
+
+  => Trimming matrix
+GCD: 1
+  <= Done
+
+  New size: 1326
+
+  => Computing lower transition matrix
+  <= Done
+
+  Size: 2728
+
+  => Computing spectral radius
+GCD: 1
+GCD: 1
+  <= Failed
+
+  Best estimate so far: 0.10620 <= Entropy <= 0.24930
+
+  => Refining partition
+  <= Done
+
+  Partition depth: 20
+  Number of partition elements: 1616
+
+  => Computing upper transition matrix
+  <= Done
+
+  Size: 1616
+
+  => Computing spectral radius
+GCD: 1
+  <= Done
+
+  1.28196 <= spectral radius <= 1.28216
+  Entropy (natural logarithm): 0.2485
+
+  => Trimming matrix
+GCD: 1
+  <= Done
+
+  New size: 1616
+
+  => Computing lower transition matrix
+  <= Done
+
+  Size: 3364
+
+  => Computing spectral radius
+GCD: 1
+GCD: 1
+  <= Failed
+
+  Best estimate so far: 0.10620 <= Entropy <= 0.24855
+
+  => Refining partition
+  <= Done
+
+  Partition depth: 21
+  Number of partition elements: 1982
+
+  => Computing upper transition matrix
+  <= Done
+
+  Size: 1982
+
+  => Computing spectral radius
+GCD: 1
+  <= Done
+
+  1.20684 <= spectral radius <=34.23545
+  Entropy (natural logarithm): 3.5333
+
+  => Trimming matrix
+GCD: 1
+  <= Done
+
+  New size: 1982
+
+  => Computing lower transition matrix
+  <= Done
+
+  Size: 4000
+
+  => Computing spectral radius
+GCD: 1
+GCD: 1
+GCD: 1
+GCD: 12
+  <= Failed
+
+  Best estimate so far: 0.10620 <= Entropy <= 0.24855
+
+  => Refining partition
+  <= Done
+
+  Partition depth: 22
+  Number of partition elements: 2430
+
+  => Computing upper transition matrix
+  <= Done
+
+  Size: 2430
+
+  => Computing spectral radius
+GCD: 1
+  <= Done
+
+  1.27930 <= spectral radius <= 1.27965
+  Entropy (natural logarithm): 0.2466
+
+  => Trimming matrix
+GCD: 1
+  <= Done
+
+  New size: 2430
+
+  => Computing lower transition matrix
+  <= Done
+
+  Size: 4862
+
+  => Computing spectral radius
+GCD: 1
+GCD: 1
+  <= Failed
+
+  Best estimate so far: 0.10620 <= Entropy <= 0.24659
+
+  => Refining partition
+  <= Done
+
+  Partition depth: 23
+  Number of partition elements: 3006
+
+  => Computing upper transition matrix
+  <= Done
+
+  Size: 3006
+
+  => Computing spectral radius
+GCD: 1
+  <= Done
+
+  1.27858 <= spectral radius <= 1.27915
+  Entropy (natural logarithm): 0.2462
+
+  => Trimming matrix
+GCD: 1
+  <= Done
+
+  New size: 3006
+
+  => Computing lower transition matrix
+  <= Done
+
+  Size: 5907
+
+  => Computing spectral radius
+GCD: 1
+GCD: 1
+GCD: 1
+GCD: 12
+  <= Failed
+
+  Best estimate so far: 0.10620 <= Entropy <= 0.24620
+
+  => Refining partition
+  <= Done
+
+  Partition depth: 24
+  Number of partition elements: 3742
+
+  => Computing upper transition matrix
+  <= Done
+
+  Size: 3742
+
+  => Computing spectral radius
+GCD: 1
+  <= Done
+
+  1.27685 <= spectral radius <= 1.27761
+  Entropy (natural logarithm): 0.2450
+
+  => Trimming matrix
+GCD: 1
+  <= Done
+
+  New size: 3742
+
+  => Computing lower transition matrix
+  <= Done
+
+  Size: 7203
+
+  => Computing spectral radius
+GCD: 16
+  <= Failed
+
+  Best estimate so far: 0.10620 <= Entropy <= 0.24499
+
+  => Refining partition
+  <= Done
+
+  Partition depth: 25
+  Number of partition elements: 4666
+
+  => Computing upper transition matrix
+  <= Done
+
+  Size: 4666
+
+  => Computing spectral radius
+GCD: 1
+  <= Done
+
+  1.27283 <= spectral radius <= 1.28802
+  Entropy (natural logarithm): 0.2531
+
+  => Trimming matrix
+GCD: 1
+  <= Done
+
+  New size: 4666
+
+  => Computing lower transition matrix
+  <= Done
+
+  Size: 8783
+
+  => Computing spectral radius
+GCD: 16
+  <= Failed
+
+  Best estimate so far: 0.10620 <= Entropy <= 0.24499
+
+  => Refining partition
+  <= Done
+
+  Partition depth: 26
+  Number of partition elements: 5778
+
+  => Computing upper transition matrix
+  <= Done
+
+  Size: 5778
+
+  => Computing spectral radius
+GCD: 1
+  <= Done
+
+  1.27072 <= spectral radius <= 1.28819
+  Entropy (natural logarithm): 0.2532
+
+  => Trimming matrix
+GCD: 1
+  <= Done
+
+  New size: 5778
+
+  => Computing lower transition matrix
+  <= Done
+
+  Size: 11038
+
+  => Computing spectral radius
+GCD: 1
+GCD: 1
+  <= Failed
+
+  Best estimate so far: 0.10620 <= Entropy <= 0.24499
+
+  => Refining partition
+  <= Done
+
+  Partition depth: 27
+  Number of partition elements: 7190
+
+  => Computing upper transition matrix
+  <= Done
+
+  Size: 7190
+
+  => Computing spectral radius
+GCD: 1
+  <= Done
+
+  1.26893 <= spectral radius <= 1.32120
+  Entropy (natural logarithm): 0.2785
+
+  => Trimming matrix
+GCD: 1
+  <= Done
+
+  New size: 7190
+
+  => Computing lower transition matrix
+  <= Done
+
+  Size: 13297
+
+  => Computing spectral radius
+GCD: 1
+GCD: 1
+  <= Failed
+
+  Best estimate so far: 0.10620 <= Entropy <= 0.24499
+
+  => Refining partition
+  <= Done
+
+  Partition depth: 28
+  Number of partition elements: 8890
+
+  => Computing upper transition matrix
+  <= Done
+
+  Size: 8890
+
+  => Computing spectral radius
+GCD: 1
+  <= Done
+
+  1.26826 <= spectral radius <= 1.33369
+  Entropy (natural logarithm): 0.2879
+
+  => Trimming matrix
+GCD: 1
+  <= Done
+
+  New size: 8890
+
+  => Computing lower transition matrix
+  <= Done
+
+  Size: 16665
+
+  => Computing spectral radius
+GCD: 1
+GCD: 1
+GCD: 1
+GCD: 12
+  <= Failed
+
+  Best estimate so far: 0.10620 <= Entropy <= 0.24499
+
+  => Refining partition
+  <= Done
+
+  Partition depth: 29
+  Number of partition elements: 11014
+
+  => Computing upper transition matrix
+  <= Done
+
+  Size: 11014
+
+  => Computing spectral radius
+GCD: 1
+  <= Done
+
+  1.26713 <= spectral radius <= 1.34318
+  Entropy (natural logarithm): 0.2950
+
+  => Trimming matrix
+GCD: 1
+  <= Done
+
+  New size: 11014
+
+  => Computing lower transition matrix
+  <= Done
+
+  Size: 20144
+
+  => Computing spectral radius
+GCD: 1
+GCD: 1
+GCD: 1
+GCD: 12
+  <= Failed
+
+  Best estimate so far: 0.10620 <= Entropy <= 0.24499
+
+  => Refining partition
+  <= Done
+
+  Partition depth: 30
+  Number of partition elements: 13634
+
+  => Computing upper transition matrix
+  <= Done
+
+  Size: 13634
+
+  => Computing spectral radius
+GCD: 1
+  <= Done
+
+  1.18895 <= spectral radius <=26.40078
+  Entropy (natural logarithm): 3.2734
+
+  => Trimming matrix
+GCD: 1
+  <= Done
+
+  New size: 13634
+
+  => Computing lower transition matrix
+  <= Done
+
+  Size: 24807
+
+  => Computing spectral radius
+GCD: 1
+GCD: 1
+GCD: 1
+GCD: 12
+  <= Failed
+
+  Best estimate so far: 0.10620 <= Entropy <= 0.24499
+
+  => Refining partition
+  <= Done
+
+  Partition depth: 31
+  Number of partition elements: 16890
+
+  => Computing upper transition matrix
+  <= Done
+
+  Size: 16890
+
+  => Computing spectral radius
+GCD: 1
+  <= Done
+
+  1.26548 <= spectral radius <= 1.41043
+  Entropy (natural logarithm): 0.3439
+
+  => Trimming matrix
+GCD: 1
+  <= Done
+
+  New size: 16890
+
+  => Computing lower transition matrix
+  <= Done
+
+  Size: 30319
+
+  => Computing spectral radius
+GCD: 1
+GCD: 1
+GCD: 1
+GCD: 12
+  <= Failed
+
+  Best estimate so far: 0.10620 <= Entropy <= 0.24499
+
+  => Refining partition
+  <= Done
+
+  Partition depth: 32
+  Number of partition elements: 20974
+
+  => Computing upper transition matrix
+  <= Done
+
+  Size: 20974
+
+  => Computing spectral radius
+GCD: 1
+  <= Failed
+
+  => Trimming matrix
+GCD: 1
+  <= Done
+
+  New size: 20974
+
+  => Computing lower transition matrix
+  <= Done
+
+  Size: 37113
+
+  => Computing spectral radius
+GCD: 1
+GCD: 1
+  <= Failed
+
+  Best estimate so far: 0.10620 <= Entropy <= 0.24499
+
+  => Refining partition
+  <= Done
+
+  Partition depth: 33
+  Number of partition elements: 26030
+
+  => Computing upper transition matrix
+  <= Done
+
+  Size: 26030
+
+  => Computing spectral radius
+GCD: 1
+  <= Done
+
+  0.92703 <= spectral radius <= 1.49017
+  Entropy (natural logarithm): 0.3989
+
+  => Trimming matrix
+GCD: 1
+  <= Done
+
+  New size: 26030
+
+  => Computing lower transition matrix
+  <= Done
+
+  Size: 46004
+
+  => Computing spectral radius
+GCD: 1
+GCD: 1
+GCD: 1
+GCD: 36
+  <= Failed
+
+  Best estimate so far: 0.10620 <= Entropy <= 0.24499
+
+  => Refining partition
+  <= Done
+
+  Partition depth: 34
+  Number of partition elements: 32434
+
+  => Computing upper transition matrix
+  <= Done
+
+  Size: 32434
+
+  => Computing spectral radius
+GCD: 1
+  <= Done
+
+  0.96708 <= spectral radius <= 1.75497
+  Entropy (natural logarithm): 0.5624
+
+  => Trimming matrix
+GCD: 1
+  <= Done
+
+  New size: 32434
+
+  => Computing lower transition matrix
+  <= Done
+
+  Size: 56073
+
+  => Computing spectral radius
+GCD: 1
+GCD: 1
+GCD: 1
+GCD: 36
+  <= Failed
+
+  Best estimate so far: 0.10620 <= Entropy <= 0.24499
+
+  => Refining partition
+  <= Done
+
+  Partition depth: 35
+  Number of partition elements: 40426
+
+  => Computing upper transition matrix
+  <= Done
+
+  Size: 40426
+
+  => Computing spectral radius
+  <= Failed
+
+Exception name: STORAGE_ERROR
+Message: stack overflow detected
+Call stack traceback locations:
+0x80e064a 0x80575f6 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98
+
+
+------------------
+-- BUG DETECTED --
+------------------
+Exception name: STORAGE_ERROR
+Message: stack overflow detected
+Call stack traceback locations:
+0x80e064a 0x80575f6 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98 0x8057e98
+
+
+Best entropy estimate so far:  0.10620 <= Entropy <= 0.24499
+Partition depth reached: 35
