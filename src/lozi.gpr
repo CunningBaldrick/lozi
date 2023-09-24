@@ -6,6 +6,6 @@ project Lozi is
       for Switches (others) use Common_Switches;
    end Compiler;
    package Linker is
-      for Switches (others) use Common_Switches & "-larpack";
+      for Switches (others) use Common_Switches & ("-larpack", "-lm");
    end Linker;
 end Lozi;
