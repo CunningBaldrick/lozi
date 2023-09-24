@@ -1,0 +1,98 @@
+private with Smart.Counters;
+
+package Integers is
+   pragma Elaborate_Body;
+
+   type Integer_Type is private;
+
+   Zero : constant Integer_Type; -- Additive identity.
+   One  : constant Integer_Type; -- Multiplicative identity.
+
+   function To_Integer_Type (X : Integer) return Integer_Type;
+   pragma Inline (To_Integer_Type);
+
+   function "="  (Left, Right : Integer_Type) return Boolean;
+   function "<"  (Left, Right : Integer_Type) return Boolean;
+   function "<=" (Left, Right : Integer_Type) return Boolean;
+   function ">"  (Left, Right : Integer_Type) return Boolean;
+   function ">=" (Left, Right : Integer_Type) return Boolean;
+
+   function Sign (Right : Integer_Type) return Integer;
+   --  Returns -1, 0 or 1 according to whether Right < 0, = 0, or > 0
+
+   function Is_Negative (Right : Integer_Type) return Boolean;
+   --  Equivalent to "<" (Right, Zero), but more efficient.
+
+   function Is_Positive (Right : Integer_Type) return Boolean;
+   --  Equivalent to ">" (Right, Zero), but more efficient.
+
+   function Is_Zero (Right : Integer_Type) return Boolean;
+   --  Equivalent to "=" (Right, Zero), but more efficient.
+
+   function Negate (Right : Integer_Type) return Integer_Type;
+   --  Equivalent to "-" (Zero, Right), but more efficient.
+
+   function "abs" (Right : Integer_Type) return Integer_Type;
+
+   function "+"  (Left, Right : Integer_Type) return Integer_Type;
+   function "-"  (Left, Right : Integer_Type) return Integer_Type;
+   function "*"  (Left, Right : Integer_Type) return Integer_Type;
+   function "/"  (Left, Right : Integer_Type) return Integer_Type;
+
+   function GCD (Left, Right : Integer_Type) return Integer_Type;
+private
+   pragma Linker_Options ("-lgmp");
+
+   type mp_limb_t_p is access Integer;
+   pragma Convention (C, mp_limb_t_p);
+
+   type mpz_t is record
+      mp_alloc : Integer;
+      mp_size  : Integer;
+      mp_d     : mp_limb_t_p;
+   end record;
+   pragma Convention (C, mpz_t);
+
+   procedure mpz_init_set_si (rop : in out mpz_t; op : Long_Integer);
+   pragma Import (C, mpz_init_set_si , "__gmpz_init_set_si");
+
+   procedure mpz_clear (integer : in out mpz_t);
+   pragma Import (C, mpz_clear, "__gmpz_clear");
+
+   procedure Initialize (
+     Target : in out mpz_t;
+     Using  : in     Long_Integer
+   ) renames mpz_init_set_si;
+
+   procedure Finalize (Target : in out mpz_t) renames mpz_clear;
+
+   package Smart_Pointers is new Smart.Smart_Pointers (
+     Counters         => Smart.Counters.Unsigned_Counters.Signature,
+     Target_Type      => mpz_t,
+     Initializer_Type => Long_Integer,
+     Initialize       => Initialize,
+     Finalize         => Finalize
+   );
+
+   type Integer_Type is new Smart_Pointers.Smart_Pointer_Type;
+
+   Zero : constant Integer_Type := Allocate (0);
+   One  : constant Integer_Type := Allocate (1);
+
+   pragma Inline ("=");
+   pragma Inline ("<");
+   pragma Inline ("<=");
+   pragma Inline (">");
+   pragma Inline (">=");
+   pragma Inline (Sign);
+   pragma Inline (Is_Negative);
+   pragma Inline (Is_Positive);
+   pragma Inline (Is_Zero);
+   pragma Inline (Negate);
+   pragma Inline ("abs");
+   pragma Inline ("+");
+   pragma Inline ("-");
+   pragma Inline ("*");
+   pragma Inline ("/");
+   pragma Inline (GCD);
+end Integers;

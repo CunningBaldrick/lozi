@@ -1,0 +1,11 @@
+project Lozi is
+   for Main use ("calculate_entropy.adb");
+   for Languages use ("Ada", "C");
+   Common_Switches := ("-O3", "-fstack-check", "-g", "-flto");
+   package Compiler is
+      for Switches (others) use Common_Switches;
+   end Compiler;
+   package Linker is
+      for Switches (others) use Common_Switches & "-larpack";
+   end Linker;
+end Lozi;

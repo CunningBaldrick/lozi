@@ -1,0 +1,13 @@
+# Build artifacts
+b__*.ad?
+*.a
+*.ali
+*.bexch
+*.d
+*.deps
+*.o
+*.stderr
+*.stdout
+
+# Build product
+calculate_entropy

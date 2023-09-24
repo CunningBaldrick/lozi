@@ -1,0 +1,507 @@
+with Ada.Command_Line;
+with Ada.Text_IO;
+with Interfaces.C;
+with System;
+
+package body Integers is
+
+   procedure Force_Exit (Status : Ada.Command_Line.Exit_Status);
+   pragma Import (C, Force_Exit, "exit");
+
+   --------------
+   -- Allocate --
+   --------------
+
+   function Allocate (alloc_size : Interfaces.C.size_t) return System.Address;
+   pragma Convention (C, Allocate);
+
+   function Allocate (alloc_size : Interfaces.C.size_t) return System.Address is
+      use Interfaces.C;
+      use System;
+
+      function malloc (alloc_size : size_t) return Address;
+      pragma Import (C, malloc, "malloc");
+
+      Result : constant Address := malloc (alloc_size);
+   begin
+      if Result = Null_Address then
+         Ada.Text_IO.Put_Line (
+           Ada.Text_IO.Standard_Error,
+           "GNU MP allocate failed - program exiting to avoid memory corruption!"
+         );
+         Force_Exit (Ada.Command_Line.Failure);
+      end if;
+      return Result;
+   end Allocate;
+
+
+   ----------------
+   -- Reallocate --
+   ----------------
+
+   function Reallocate (
+     ptr      : System.Address;
+     old_size : Interfaces.C.size_t;
+     new_size : Interfaces.C.size_t
+   ) return System.Address;
+   pragma Convention (C, Reallocate);
+
+   function Reallocate (
+     ptr      : System.Address;
+     old_size : Interfaces.C.size_t;
+     new_size : Interfaces.C.size_t
+   ) return System.Address is
+      pragma Unreferenced (old_size);
+
+      use Interfaces.C;
+      use System;
+
+      function realloc (
+        ptr  : Address;
+        size : size_t
+      ) return System.Address;
+      pragma Import (C, realloc, "realloc");
+
+      Result : constant Address := realloc (ptr, new_size);
+   begin
+      if Result = Null_Address then
+         Ada.Text_IO.Put_Line (
+           Ada.Text_IO.Standard_Error,
+           "GNU MP reallocate failed - program exiting to avoid memory corruption!"
+         );
+         Force_Exit (Ada.Command_Line.Failure);
+      end if;
+      return Result;
+   end Reallocate;
+
+   type alloc_func_ptr is access function (alloc_size : Interfaces.C.size_t)
+     return System.Address;
+   pragma Convention (C, alloc_func_ptr);
+
+   type realloc_func_ptr is access function (
+     ptr      : System.Address;
+     old_size : Interfaces.C.size_t;
+     new_size : Interfaces.C.size_t
+   ) return System.Address;
+   pragma Convention (C, realloc_func_ptr);
+
+   type free_func_ptr is access procedure (
+     ptr  : System.Address;
+     size : Interfaces.C.size_t
+   );
+   pragma Convention (C, free_func_ptr);
+
+   procedure Free (
+     ptr  : System.Address;
+     size : Interfaces.C.size_t
+   );
+   pragma Import (C, Free, "free");
+
+   procedure mp_set_memory_functions (
+     allocate_function   : alloc_func_ptr;
+     reallocate_function : realloc_func_ptr;
+     free_function       : free_func_ptr
+   );
+   pragma Import (C, mp_set_memory_functions, "__gmp_set_memory_functions");
+
+
+   --------------
+   -- Modify_2 --
+   --------------
+
+   generic
+      with procedure Action (Left, Right : in out mpz_t);
+   procedure Modify_2 (Left, Right : Integer_Type);
+
+   procedure Modify_2 (Left, Right : Integer_Type) is
+      use Smart_Pointers;
+
+      --------------------
+      -- Do_Access_Left --
+      --------------------
+
+      procedure Do_Access_Left (Left : in out mpz_t);
+      procedure Do_Access_Left (Left : in out mpz_t) is
+
+         ---------------------
+         -- Do_Access_Right --
+         ---------------------
+
+         procedure Do_Access_Right (Right : in out mpz_t);
+         procedure Do_Access_Right (Right : in out mpz_t) is
+         begin
+            Action (Left, Right);
+         end Do_Access_Right;
+
+         procedure Access_Right is new Access_Contents (Do_Access_Right);
+      begin
+         Access_Right (Smart_Pointer_Type (Right));
+      end Do_Access_Left;
+
+      procedure Access_Left is new Access_Contents (Do_Access_Left);
+   begin
+      Access_Left (Smart_Pointer_Type (Left));
+   end Modify_2;
+
+
+   --------------
+   -- Modify_3 --
+   --------------
+
+   generic
+      with procedure Action (A, B, C : in out mpz_t);
+   procedure Modify_3 (A, B, C : Integer_Type);
+
+   procedure Modify_3 (A, B, C : Integer_Type) is
+      use Smart_Pointers;
+
+      -----------------
+      -- Do_Access_A --
+      -----------------
+
+      procedure Do_Access_A (A : in out mpz_t);
+      procedure Do_Access_A (A : in out mpz_t) is
+
+         -----------------
+         -- Do_Access_B --
+         -----------------
+
+         procedure Do_Access_B (B : in out mpz_t);
+         procedure Do_Access_B (B : in out mpz_t) is
+
+            -----------------
+            -- Do_Access_C --
+            -----------------
+
+            procedure Do_Access_C (C : in out mpz_t);
+            procedure Do_Access_C (C : in out mpz_t) is
+            begin
+               Action (A, B, C);
+            end Do_Access_C;
+
+            procedure Access_C is new Access_Contents (Do_Access_C);
+         begin
+            Access_C (Smart_Pointer_Type (C));
+         end Do_Access_B;
+
+         procedure Access_B is new Access_Contents (Do_Access_B);
+      begin
+         Access_B (Smart_Pointer_Type (B));
+      end Do_Access_A;
+
+      procedure Access_A is new Access_Contents (Do_Access_A);
+   begin
+      Access_A (Smart_Pointer_Type (A));
+   end Modify_3;
+
+
+   -------------
+   -- Compare --
+   -------------
+
+   function Compare (Left, Right : Integer_Type) return Integer;
+   --  Compare Left and Right.  Return a positive value if Left > Right,
+   --  zero if Left = Right, or a negative value if Left < Right.
+
+   function Compare (Left, Right : Integer_Type) return Integer is
+      Result : Integer;
+
+      procedure MPZ_Compare (Left, Right : in out mpz_t);
+      procedure MPZ_Compare (Left, Right : in out mpz_t) is
+         procedure mpz_cmp (Result : out Integer; op1, op2 : in out mpz_t);
+         pragma Import (C, mpz_cmp, "__gmpz_cmp");
+         pragma Import_Valued_Procedure (mpz_cmp);
+      begin
+         mpz_cmp (Result, Left, Right);
+      end MPZ_Compare;
+
+      procedure Do_Compare is new Modify_2 (MPZ_Compare);
+
+      use Smart_Pointers;
+   begin
+      if Smart_Pointer_Type (Left) = Smart_Pointer_Type (Right) then
+         return 0;
+      end if;
+
+      Do_Compare (Left, Right);
+      return Result;
+   end Compare;
+
+
+   -------
+   -- = --
+   -------
+
+   function "="  (Left, Right : Integer_Type) return Boolean is
+   begin
+      return Compare (Left, Right) = 0;
+   end "=";
+
+
+   -------
+   -- < --
+   -------
+
+   function "<"  (Left, Right : Integer_Type) return Boolean is
+   begin
+      return Compare (Left, Right) < 0;
+   end "<";
+
+
+   --------
+   -- <= --
+   --------
+
+   function "<=" (Left, Right : Integer_Type) return Boolean is
+   begin
+      return not (Left > Right);
+   end "<=";
+
+
+   -------
+   -- > --
+   -------
+
+   function ">"  (Left, Right : Integer_Type) return Boolean is
+   begin
+      return Compare (Left, Right) > 0;
+   end ">";
+
+
+   --------
+   -- >= --
+   --------
+
+   function ">=" (Left, Right : Integer_Type) return Boolean is
+   begin
+      return not (Left < Right);
+   end ">=";
+
+
+   ----------
+   -- Sign --
+   ----------
+
+   function Sign (Right : Integer_Type) return Integer is
+      use Smart_Pointers;
+
+      Result : Integer;
+
+      procedure Do_Get_Sign (Right : in out mpz_t);
+      procedure Do_Get_Sign (Right : in out mpz_t) is
+      begin
+         if Right.mp_size < 0 then
+            Result := -1;
+         elsif Right.mp_size > 0 then
+            Result := 1;
+         else
+            Result := 0;
+         end if;
+      end Do_Get_Sign;
+
+      procedure Get_Sign is new Access_Contents (Do_Get_Sign);
+   begin
+      Get_Sign (Smart_Pointer_Type (Right));
+      return Result;
+   end Sign;
+
+
+
+   -----------------
+   -- Is_Negative --
+   -----------------
+
+   function Is_Negative (Right : Integer_Type) return Boolean is
+   begin
+      return Sign (Right) < 0;
+   end Is_Negative;
+
+
+   -----------------
+   -- Is_Positive --
+   -----------------
+
+   function Is_Positive (Right : Integer_Type) return Boolean is
+   begin
+      return Sign (Right) > 0;
+   end Is_Positive;
+
+
+   -------------
+   -- Is_Zero --
+   -------------
+
+   function Is_Zero (Right : Integer_Type) return Boolean is
+   begin
+      return Sign (Right) = 0;
+   end Is_Zero;
+
+
+   ------------
+   -- Negate --
+   ------------
+
+   function Negate (Right : Integer_Type) return Integer_Type is
+      Result : constant Integer_Type := Allocate (0);
+
+      procedure MPZ_Negate (Result, Right : in out mpz_t);
+      procedure MPZ_Negate (Result, Right : in out mpz_t) is
+         procedure mpz_neg (rop, op : in out mpz_t);
+         pragma Import (C, mpz_neg, "__gmpz_neg");
+      begin
+         mpz_neg (Result, Right);
+      end MPZ_Negate;
+
+      procedure Do_Negate is new Modify_2 (MPZ_Negate);
+   begin
+      Do_Negate (Result, Right);
+      return Result;
+   end Negate;
+
+
+   ---------
+   -- abs --
+   ---------
+
+   function "abs" (Right : Integer_Type) return Integer_Type is
+      Result : constant Integer_Type := Allocate (0);
+
+      procedure MPZ_Abs (Result, Right : in out mpz_t);
+      procedure MPZ_Abs (Result, Right : in out mpz_t) is
+         procedure mpz_abs (rop, op : in out mpz_t);
+         pragma Import (C, mpz_abs, "__gmpz_abs");
+      begin
+         mpz_abs (Result, Right);
+      end MPZ_Abs;
+
+      procedure Do_Abs is new Modify_2 (MPZ_Abs);
+   begin
+      Do_Abs (Result, Right);
+      return Result;
+   end "abs";
+
+
+   -------
+   -- + --
+   -------
+
+   function "+"  (Left, Right : Integer_Type) return Integer_Type is
+      Result : constant Integer_Type := Allocate (0);
+
+      procedure MPZ_Add (Result, Left, Right : in out mpz_t);
+      procedure MPZ_Add (Result, Left, Right : in out mpz_t) is
+         procedure mpz_add (rop, op1, op2 : in out mpz_t);
+         pragma Import (C, mpz_add, "__gmpz_add");
+      begin
+         mpz_add (Result, Left, Right);
+      end MPZ_Add;
+
+      procedure Do_Add is new Modify_3 (MPZ_Add);
+   begin
+      Do_Add (Result, Left, Right);
+      return Result;
+   end "+";
+
+
+   -------
+   -- - --
+   -------
+
+   function "-"  (Left, Right : Integer_Type) return Integer_Type is
+      Result : constant Integer_Type := Allocate (0);
+
+      procedure MPZ_Sub (Result, Left, Right : in out mpz_t);
+      procedure MPZ_Sub (Result, Left, Right : in out mpz_t) is
+         procedure mpz_sub (rop, op1, op2 : in out mpz_t);
+         pragma Import (C, mpz_sub, "__gmpz_sub");
+      begin
+         mpz_sub (Result, Left, Right);
+      end MPZ_Sub;
+
+      procedure Do_Sub is new Modify_3 (MPZ_Sub);
+   begin
+      Do_Sub (Result, Left, Right);
+      return Result;
+   end "-";
+
+
+   -------
+   -- * --
+   -------
+
+   function "*"  (Left, Right : Integer_Type) return Integer_Type is
+      Result : constant Integer_Type := Allocate (0);
+
+      procedure MPZ_Mul (Result, Left, Right : in out mpz_t);
+      procedure MPZ_Mul (Result, Left, Right : in out mpz_t) is
+         procedure mpz_mul (rop, op1, op2 : in out mpz_t);
+         pragma Import (C, mpz_mul, "__gmpz_mul");
+      begin
+         mpz_mul (Result, Left, Right);
+      end MPZ_Mul;
+
+      procedure Do_Mul is new Modify_3 (MPZ_Mul);
+   begin
+      Do_Mul (Result, Left, Right);
+      return Result;
+   end "*";
+
+
+   -------
+   -- / --
+   -------
+
+   function "/"  (Left, Right : Integer_Type) return Integer_Type is
+      Result : constant Integer_Type := Allocate (0);
+
+      procedure MPZ_Div (Result, Left, Right : in out mpz_t);
+      procedure MPZ_Div (Result, Left, Right : in out mpz_t) is
+         procedure mpz_tdiv_q (q, n, d : in out mpz_t);
+         pragma Import (C, mpz_tdiv_q, "__gmpz_tdiv_q");
+      begin
+         mpz_tdiv_q (Result, Left, Right);
+      end MPZ_Div;
+
+      procedure Do_Div is new Modify_3 (MPZ_Div);
+   begin
+      Do_Div (Result, Left, Right);
+      return Result;
+   end "/";
+
+
+   ---------------------
+   -- To_Integer_Type --
+   ---------------------
+
+   function To_Integer_Type (X : Integer) return Integer_Type is
+   begin
+      return Allocate (Long_Integer (X));
+   end To_Integer_Type;
+
+
+   ---------
+   -- GCD --
+   ---------
+
+   function GCD  (Left, Right : Integer_Type) return Integer_Type is
+      Result : constant Integer_Type := Allocate (0);
+
+      procedure MPZ_GCD (Result, Left, Right : in out mpz_t);
+      procedure MPZ_GCD (Result, Left, Right : in out mpz_t) is
+         procedure mpz_gcd (rop, op1, op2 : in out mpz_t);
+         pragma Import (C, mpz_gcd, "__gmpz_gcd");
+      begin
+         mpz_gcd (Result, Left, Right);
+      end MPZ_GCD;
+
+      procedure Do_GCD is new Modify_3 (MPZ_GCD);
+   begin
+      Do_GCD (Result, Left, Right);
+      return Result;
+   end GCD;
+
+begin
+   --  This must be done before any gmp allocation, for example before
+   --  allocating memory for the constants Zero and One in the spec.
+   mp_set_memory_functions (Allocate'Access, Reallocate'Access, Free'Access);
+end Integers;
