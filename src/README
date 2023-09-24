@@ -1,0 +1,23 @@
+To build, you will need C and Ada compilers, as well as the arpack library.
+On Linux ubuntu you can install these as follows:
+
+  sudo apt install build-essential # C compiler plus some standard tools
+  sudo apt install gnat gprbuild # Ada compiler and build tool
+  sudo apt install libarpack2-dev # Arpack library
+
+You should then be able to build the "calculate_entropy" program by running
+  gprbuild
+in this directory.
+
+If you run the program without any command line arguments then it explains:
+  Usage: ./calculate_entropy [-v] A_Numerator A_Denominator B_Numerator B_Denominator [desired accuracy]
+
+For example:
+  ./calculate_entropy -v 2 1 1 10 0.001
+Here A_Numerator = 2, A_Denominator = 1, thus A is the fraction 2/1, otherwise
+known as 2.  Likewise B_Numerator = 1, B_Denominator = 10, thus B is 1/10, aka
+0.1.  The desired accuracy is 0.001.  Thanks to the -v (verbose) flag, you get
+a lot of output, finishing up with
+  Entropy (natural logarithm): 0.67748 <= Entropy <= 0.67845
+The entropy of the Lozi map wih parameter a=2, b=0.1 is guaranteed to lie in
+this range.
