@@ -1,0 +1,10 @@
+with Multi_precision_integers_IO;
+
+package body Integers.IO is
+   procedure Put (Source : Integer_Type) is
+   begin
+      Multi_precision_integers_IO.Put (
+        Multi_precision_integers.Multi_int (Source)
+      );
+   end Put;
+end Integers.IO;

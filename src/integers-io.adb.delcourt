@@ -1,0 +1,9 @@
+package body Integers.IO is
+   ---------
+   -- Put --
+   ---------
+   procedure Put (Source : Integer_Type) is
+   begin
+      Big_Numbers.Big_Signed_IO.PUT (Big_Numbers.Big_Signed (Source));
+   end Put;
+end Integers.IO;

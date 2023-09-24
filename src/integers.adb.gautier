@@ -1,0 +1,170 @@
+package body Integers is
+   use Multi_precision_integers;
+
+   -------
+   -- = --
+   -------
+   function "="  (Left, Right : Integer_Type) return Boolean is
+   begin
+      return "=" (Multi_int (Left), Multi_int (Right));
+   end "=";
+
+   -------
+   -- < --
+   -------
+   function "<"  (Left, Right : Integer_Type) return Boolean is
+   begin
+      return "<" (Multi_int (Left), Multi_int (Right));
+   end "<";
+
+   --------
+   -- <= --
+   --------
+   function "<=" (Left, Right : Integer_Type) return Boolean is
+   begin
+      return "<=" (Multi_int (Left), Multi_int (Right));
+   end "<=";
+
+   -------
+   -- > --
+   -------
+   function ">"  (Left, Right : Integer_Type) return Boolean is
+   begin
+      return ">" (Multi_int (Left), Multi_int (Right));
+   end ">";
+
+   --------
+   -- >= --
+   --------
+   function ">=" (Left, Right : Integer_Type) return Boolean is
+   begin
+      return ">=" (Multi_int (Left), Multi_int (Right));
+   end ">=";
+
+   -----------------
+   -- Is_Negative --
+   -----------------
+   function Is_Negative (Right : Integer_Type) return Boolean is
+   begin
+      return Sign (Multi_int (Right)) = -1;
+   end Is_Negative;
+
+   -----------------
+   -- Is_Positive --
+   -----------------
+   function Is_Positive (Right : Integer_Type) return Boolean is
+   begin
+      return Sign (Multi_int (Right)) = 1;
+   end Is_Positive;
+
+   -------------
+   -- Is_Zero --
+   -------------
+   function Is_Zero (Right : Integer_Type) return Boolean is
+   begin
+      return Sign (Multi_int (Right)) = 0;
+   end Is_Zero;
+
+   ------------
+   -- Negate --
+   ------------
+   function Negate (Right : Integer_Type) return Integer_Type is
+   begin
+      return Integer_Type ("-" (Multi_int (Right)));
+   end Negate;
+
+   ---------
+   -- abs --
+   ---------
+   function "abs" (Right : Integer_Type) return Integer_Type is
+   begin
+      return Integer_Type ("abs" (Multi_int (Right)));
+   end "abs";
+
+   -------
+   -- + --
+   -------
+   function "+"  (Left, Right : Integer_Type) return Integer_Type is
+      Result : Integer_Type;
+   begin
+      Add (Multi_int (Left), Multi_int (Right), Multi_int (Result));
+      return Result;
+   end "+";
+
+   -------
+   -- - --
+   -------
+   function "-"  (Left, Right : Integer_Type) return Integer_Type is
+      Result : Integer_Type;
+   begin
+      Sub (Multi_int (Left), Multi_int (Right), Multi_int (Result));
+      return Result;
+   end "-";
+
+   -------
+   -- * --
+   -------
+   function "*"  (Left, Right : Integer_Type) return Integer_Type is
+      Result : Integer_Type;
+   begin
+      Mult (Multi_int (Left), Multi_int (Right), Multi_int (Result));
+      return Result;
+   end "*";
+
+   -------
+   -- / --
+   -------
+   function "/"  (Left, Right : Integer_Type) return Integer_Type is
+      Result : Integer_Type;
+      Spare  : Multi_int (Mantissa_Length);
+   begin
+      Div_Rem (Multi_int (Left), Multi_int (Right), Multi_int (Result), Spare);
+      return Result;
+   end "/";
+
+   ---------
+   -- rem --
+   ---------
+   function "rem"  (Left, Right : Integer_Type) return Integer_Type is
+      Result : Integer_Type;
+      Spare  : Multi_int (Mantissa_Length);
+   begin
+      Div_Rem (Multi_int (Left), Multi_int (Right), Spare, Multi_int (Result));
+      return Result;
+   end "rem";
+
+   ---------------------
+   -- To_Integer_Type --
+   ---------------------
+   function To_Integer_Type (X : Integer) return Integer_Type is
+   begin
+      return Integer_Type (Gautier_Support.Multi (X, Mantissa_Length));
+   end To_Integer_Type;
+
+   ---------
+   -- GCD --
+   ---------
+   function GCD (Left, Right : Integer_Type) return Integer_Type is
+      A : Integer_Type := abs Left;
+      B : Integer_Type := abs Right;
+      C : Integer_Type;
+   begin
+      if A = B then
+         return A;
+      elsif A < B then
+         C := A;
+         A := B;
+         B := C;
+      end if;
+   
+      loop
+         if Is_Zero (B) then
+            return A;
+         end if;
+   
+         C := B;
+         B := A rem B;
+         A := C;
+      end loop;
+   end GCD;
+end Integers;

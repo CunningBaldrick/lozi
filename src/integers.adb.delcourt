@@ -1,0 +1,201 @@
+package body Integers is
+   use Big_Numbers;
+   use Signed_Number;
+
+   -------
+   -- = --
+   -------
+   function "="  (Left, Right : Integer_Type) return Boolean is
+   begin
+      return "=" (Big_Signed (Left), Big_Signed (Right));
+   end "=";
+
+   -------
+   -- < --
+   -------
+   function "<"  (Left, Right : Integer_Type) return Boolean is
+   begin
+      return "<" (Big_Signed (Left), Big_Signed (Right));
+   end "<";
+
+   --------
+   -- <= --
+   --------
+   function "<=" (Left, Right : Integer_Type) return Boolean is
+   begin
+      return "<=" (Big_Signed (Left), Big_Signed (Right));
+   end "<=";
+
+   -------
+   -- > --
+   -------
+   function ">"  (Left, Right : Integer_Type) return Boolean is
+   begin
+      return ">" (Big_Signed (Left), Big_Signed (Right));
+   end ">";
+
+   --------
+   -- >= --
+   --------
+   function ">=" (Left, Right : Integer_Type) return Boolean is
+   begin
+      return ">=" (Big_Signed (Left), Big_Signed (Right));
+   end ">=";
+
+   ----------
+   -- Sign --
+   ----------
+   function Sign (Right : Integer_Type) return Integer is
+   begin
+      if Is_Null (Big_Signed (Right)) then
+         return 0;
+      elsif Right.Positive then
+         return 1;
+      else
+         return -1;
+      end if;
+   end Sign;
+
+   -----------------
+   -- Is_Negative --
+   -----------------
+   function Is_Negative (Right : Integer_Type) return Boolean is
+   begin
+      return Sign (Right) < 0;
+   end Is_Negative;
+
+   -----------------
+   -- Is_Positive --
+   -----------------
+   function Is_Positive (Right : Integer_Type) return Boolean is
+   begin
+      return Sign (Right) > 0;
+   end Is_Positive;
+
+   -------------
+   -- Is_Zero --
+   -------------
+   function Is_Zero (Right : Integer_Type) return Boolean is
+   begin
+      return Is_Null (Big_Signed (Right));
+   end Is_Zero;
+
+   ------------
+   -- Negate --
+   ------------
+   function Negate (Right : Integer_Type) return Integer_Type is
+   begin
+      return Integer_Type (Opposite (Big_Signed (Right)));
+   end Negate;
+
+   ---------
+   -- abs --
+   ---------
+   function "abs" (Right : Integer_Type) return Integer_Type is
+   begin
+      return Integer_Type (Absolute (Big_Signed (Right)));
+   end "abs";
+
+   -------
+   -- + --
+   -------
+   function "+"  (Left, Right : Integer_Type) return Integer_Type is
+   begin
+      return Integer_Type ("+" (Big_Signed (Left), Big_Signed (Right)));
+   end "+";
+
+   -------
+   -- - --
+   -------
+   function "-"  (Left, Right : Integer_Type) return Integer_Type is
+   begin
+      return Integer_Type ("-" (Big_Signed (Left), Big_Signed (Right)));
+   end "-";
+
+   -------
+   -- * --
+   -------
+   function "*"  (Left, Right : Integer_Type) return Integer_Type is
+   begin
+      return Integer_Type ("*" (Big_Signed (Left), Big_Signed (Right)));
+   end "*";
+
+   -------
+   -- / --
+   -------
+   function "/"  (Left, Right : Integer_Type) return Integer_Type is
+   begin
+      return Integer_Type ("/" (Big_Signed (Left), Big_Signed (Right)));
+   end "/";
+
+   ---------
+   -- rem --
+   ---------
+   function "rem"  (Left, Right : Integer_Type) return Integer_Type is
+      Quotient, Result : Big_Signed;
+   begin
+      Big_Div (Big_Signed (Left), Big_Signed (Right), Quotient, Result);
+      return Integer_Type (Result);
+   end "rem";
+
+   ---------------------
+   -- To_Integer_Type --
+   ---------------------
+   function Convert_Natural (X : Natural) return Integer_Type;
+
+   function Convert_Natural (X : Natural) return Integer_Type is
+   begin
+      if X = 0 then
+         return Zero;
+      elsif X = 1 then
+         return One;
+      else
+         declare
+            Spare : Integer_Type := Convert_Natural (X / 2);
+         begin
+            Spare := Spare + Spare;
+            if X mod 2 = 0 then
+               return Spare;
+            else
+               return Spare + One;
+            end if;
+         end;
+      end if;
+   end Convert_Natural;
+
+   function To_Integer_Type (X : Integer) return Integer_Type is
+   begin
+      if X >= 0 then
+         return Convert_Natural (X);
+      else
+         return Negate (Convert_Natural (-X));
+      end if;
+   end To_Integer_Type;
+
+   ---------
+   -- GCD --
+   ---------
+   function GCD (Left, Right : Integer_Type) return Integer_Type is
+      A : Integer_Type := abs Left;
+      B : Integer_Type := abs Right;
+      C : Integer_Type;
+   begin
+      if A = B then
+         return A;
+      elsif A < B then
+         C := A;
+         A := B;
+         B := C;
+      end if;
+
+      loop
+         if Is_Zero (B) then
+            return A;
+         end if;
+
+         C := B;
+         B := A rem B;
+         A := C;
+      end loop;
+   end GCD;
+end Integers;

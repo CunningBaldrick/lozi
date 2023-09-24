@@ -1,0 +1,77 @@
+with Big_Number;
+
+pragma Elaborate_All (Big_Number);
+
+package Integers is
+   pragma Elaborate_Body;
+
+   type Integer_Type is private;
+
+   Zero : constant Integer_Type; -- Additive identity.
+   One  : constant Integer_Type; -- Multiplicative identity.
+
+   function To_Integer_Type (X : Integer) return Integer_Type;
+   pragma Inline (To_Integer_Type);
+
+   function "="  (Left, Right : Integer_Type) return Boolean;
+   function "<"  (Left, Right : Integer_Type) return Boolean;
+   function "<=" (Left, Right : Integer_Type) return Boolean;
+   function ">"  (Left, Right : Integer_Type) return Boolean;
+   function ">=" (Left, Right : Integer_Type) return Boolean;
+
+   function Sign (Right : Integer_Type) return Integer;
+   --  Returns -1, 0 or 1 according to whether Right < 0, = 0, or > 0
+
+   function Is_Negative (Right : Integer_Type) return Boolean;
+   --  Equivalent to "<" (Right, Zero), but more efficient.
+
+   function Is_Positive (Right : Integer_Type) return Boolean;
+   --  Equivalent to ">" (Right, Zero), but more efficient.
+
+   function Is_Zero (Right : Integer_Type) return Boolean;
+   --  Equivalent to "=" (Right, Zero), but more efficient.
+
+   function Negate (Right : Integer_Type) return Integer_Type;
+   --  Equivalent to "-" (Zero, Right), but more efficient.
+
+   function "abs" (Right : Integer_Type) return Integer_Type;
+
+   function "+"  (Left, Right : Integer_Type) return Integer_Type;
+   function "-"  (Left, Right : Integer_Type) return Integer_Type;
+   function "*"  (Left, Right : Integer_Type) return Integer_Type;
+   function "/"  (Left, Right : Integer_Type) return Integer_Type;
+
+   function "rem"  (Left, Right : Integer_Type) return Integer_Type;
+
+   function GCD (Left, Right : Integer_Type) return Integer_Type;
+private
+   type Index_Type is mod 2**8;
+   for Index_Type'Size use 8;
+
+   package Big_Numbers is new Big_Number (
+     Index_Type,
+     128
+   );
+
+   type Integer_Type is new Big_Numbers.Big_Signed;
+
+   Zero : constant Integer_Type := Integer_Type (Big_Numbers.Big_Signed_Zero);
+   One  : constant Integer_Type := Integer_Type (Big_Numbers.Big_Signed_One);
+
+   pragma Inline ("=");
+   pragma Inline ("<");
+   pragma Inline ("<=");
+   pragma Inline (">");
+   pragma Inline (">=");
+   pragma Inline (Sign);
+   pragma Inline (Is_Negative);
+   pragma Inline (Is_Positive);
+   pragma Inline (Is_Zero);
+   pragma Inline (Negate);
+   pragma Inline ("abs");
+   pragma Inline ("+");
+   pragma Inline ("-");
+   pragma Inline ("*");
+   pragma Inline ("/");
+   pragma Inline ("rem");
+end Integers;

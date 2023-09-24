@@ -1,0 +1,73 @@
+with Gautier_Support;
+with Multi_precision_integers;
+
+pragma Elaborate_All (Multi_precision_integers);
+
+package Integers is
+   pragma Elaborate_Body;
+
+   type Integer_Type is private;
+
+   Zero : constant Integer_Type; -- Additive identity
+   One  : constant Integer_Type; -- Multiplicative identity
+
+   function To_Integer_Type (X : Integer) return Integer_Type;
+
+   function "="  (Left, Right : Integer_Type) return Boolean;
+   function "<"  (Left, Right : Integer_Type) return Boolean;
+   function "<=" (Left, Right : Integer_Type) return Boolean;
+   function ">"  (Left, Right : Integer_Type) return Boolean;
+   function ">=" (Left, Right : Integer_Type) return Boolean;
+
+   function Is_Negative (Right : Integer_Type) return Boolean;
+   -- equivalent to "<" (Right, Zero), but more efficient
+
+   function Is_Positive (Right : Integer_Type) return Boolean;
+   -- equivalent to ">" (Right, Zero), but more efficient
+
+   function Is_Zero (Right : Integer_Type) return Boolean;
+   -- equivalent to "=" (Right, Zero), but more efficient
+
+   function Negate (Right : Integer_Type) return Integer_Type;
+   -- equivalent to "-" (Zero, Right), but more efficient
+
+   function "abs" (Right : Integer_Type) return Integer_Type;
+
+   function "+"  (Left, Right : Integer_Type) return Integer_Type;
+   function "-"  (Left, Right : Integer_Type) return Integer_Type;
+   function "*"  (Left, Right : Integer_Type) return Integer_Type;
+   function "/"  (Left, Right : Integer_Type) return Integer_Type;
+
+   function "rem"  (Left, Right : Integer_Type) return Integer_Type;
+
+   function GCD (Left, Right : Integer_Type) return Integer_Type;
+private
+   Mantissa_Length : constant := 32;
+
+   type Integer_Type is new Multi_precision_integers.Multi_int (
+     Mantissa_Length
+   );
+
+   Zero : constant Integer_Type := Integer_Type (
+     Gautier_Support.Multi (0, Mantissa_Length)
+   );
+   One  : constant Integer_Type := Integer_Type (
+     Gautier_Support.Multi (1, Mantissa_Length)
+   );
+
+   pragma Inline ("=");
+   pragma Inline ("<");
+   pragma Inline ("<=");
+   pragma Inline (">");
+   pragma Inline (">=");
+   pragma Inline (Is_Negative);
+   pragma Inline (Is_Positive);
+   pragma Inline (Is_Zero);
+   pragma Inline (Negate);
+   pragma Inline ("abs");
+   pragma Inline ("+");
+   pragma Inline ("-");
+   pragma Inline ("*");
+   pragma Inline ("/");
+   pragma Inline ("rem");
+end Integers;
