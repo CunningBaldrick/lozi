@@ -3,6 +3,7 @@ b__*.ad?
 *.a
 *.ali
 *.bexch
+*.cswi
 *.d
 *.deps
 *.o
