@@ -1,0 +1,51 @@
+#!/bin/bash
+
+# Usage: do_worst [COUNT [TIMEOUT]]
+# For example
+#   do_worst 10 1h
+# will compute entropy for 10 parameters with bad current bounds, with a timeout
+# of one hour per parameter.
+
+set -e
+
+COUNT=${1:-100}
+TIMEOUT=${2:-1h}
+ACCURACY=${3:-0.0007}
+WHO=${4:-duncan}
+
+INCLUDE_TOUGH=0
+#INCLUDE_TOUGH=1
+
+THIS_PATH=`readlink -f "$0"`
+EXEC_DIR=`dirname "$THIS_PATH"` # Directory to find other scripts in
+
+psql -X -F' ' -P format=unaligned -t -c "
+  SELECT a_num, a_den, b_num, b_den FROM lozi
+  WHERE (not tough OR $INCLUDE_TOUGH=1)
+  AND upper-lower>$ACCURACY
+  ORDER BY upper-lower DESC LIMIT $COUNT
+" \
+   | while read a_num a_den b_num b_den
+do
+   echo "$a_num $a_den $b_num $b_den"
+   D=${a_num}_${a_den}_${b_num}_${b_den}
+   mkdir -p $D ; echo $a_num > $D/a_num
+   echo $a_den > $D/a_den
+   echo $b_num > $D/b_num
+   echo $b_den > $D/b_den
+   timeout $TIMEOUT "$EXEC_DIR/calculate_entropy" -v $a_num $a_den $b_num $b_den $ACCURACY >> $D/output || true
+   "$EXEC_DIR/extract_result.py" $D/output | while read lower upper ; do
+     if [[ "x$lower" != "x" ]] ; then
+       if [[ "x$upper" != "x" ]] ; then
+         psql -X -c "
+           UPDATE lozi SET lower=$lower, lwho='$WHO' WHERE
+             a_num=$a_num AND a_den=$a_den AND b_num=$b_num AND b_den=$b_den
+           AND lower < $lower;
+           UPDATE lozi SET upper=$upper, uwho='$WHO' WHERE
+             a_num=$a_num AND a_den=$a_den AND b_num=$b_num AND b_den=$b_den
+           AND $upper < upper;
+         " > /dev/null
+       fi
+     fi
+   done
+done
