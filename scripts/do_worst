@@ -19,22 +19,25 @@ INCLUDE_TOUGH=0
 THIS_PATH=`readlink -f "$0"`
 EXEC_DIR=`dirname "$THIS_PATH"` # Directory to find other scripts in
 
-psql -X -F' ' -P format=unaligned -t -c "
-  SELECT a_num, a_den, b_num, b_den FROM lozi
-  WHERE (not tough OR $INCLUDE_TOUGH=1)
-  AND upper-lower>$ACCURACY
-  ORDER BY upper-lower DESC LIMIT $COUNT
-" \
-   | while read a_num a_den b_num b_den
-do
-   echo "$a_num $a_den $b_num $b_den"
-   D=${a_num}_${a_den}_${b_num}_${b_den}
-   mkdir -p $D ; echo $a_num > $D/a_num
-   echo $a_den > $D/a_den
-   echo $b_num > $D/b_num
-   echo $b_den > $D/b_den
-   timeout $TIMEOUT "$EXEC_DIR/calculate_entropy" -v $a_num $a_den $b_num $b_den $ACCURACY >> $D/output || true
-   "$EXEC_DIR/extract_result.py" $D/output | while read lower upper ; do
+export ACCURACY
+export EXEC_DIR
+export WHO
+
+calc_one() {
+  read -a params <<< "$1"
+  a_num=${params[0]}
+  a_den=${params[1]}
+  b_num=${params[2]}
+  b_den=${params[3]}
+  echo "$a_num $a_den $b_num $b_den"
+  D="${a_num}_${a_den}_${b_num}_${b_den}"
+  mkdir -p $D
+  echo $a_num > $D/a_num
+  echo $a_den > $D/a_den
+  echo $b_num > $D/b_num
+  echo $b_den > $D/b_den
+  "$EXEC_DIR/calculate_entropy" -v $a_num $a_den $b_num $b_den $ACCURACY >> $D/output || true
+  "$EXEC_DIR/extract_result.py" $D/output | while read lower upper ; do
      if [[ "x$lower" != "x" ]] ; then
        if [[ "x$upper" != "x" ]] ; then
          psql -X -c "
@@ -47,5 +50,13 @@ do
          " > /dev/null
        fi
      fi
-   done
-done
+  done
+}
+export -f calc_one
+
+psql -X -F' ' -P format=unaligned -t -c "
+  SELECT a_num, a_den, b_num, b_den FROM lozi
+  WHERE (not tough OR $INCLUDE_TOUGH=1)
+  AND upper-lower>$ACCURACY
+  ORDER BY RANDOM() LIMIT $COUNT
+" | parallel --load 100% --memfree 4G --noswap --timeout $TIMEOUT calc_one
