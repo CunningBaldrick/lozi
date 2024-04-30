@@ -1,17 +1,22 @@
 #!/bin/bash
 
-# Usage: do_worst [COUNT [TIMEOUT]]
+# Usage: do_worst DBHOST [COUNT [TIMEOUT [ACCURACY]]]
 # For example
-#   do_worst 10 1h
+#   do_worst localhost 10 1h
 # will compute entropy for 10 parameters with bad current bounds, with a timeout
 # of one hour per parameter.
 
 set -e
 
-COUNT=${1:-100}
-TIMEOUT=${2:-1h}
-ACCURACY=${3:-0.0007}
-WHO=${4:-duncan}
+DBHOST=${1}
+COUNT=${2:-100}
+TIMEOUT=${3:-1h}
+ACCURACY=${4:-0.0007}
+DBUSER=${5:-$(whoami)}
+DBPASSWORD=${6:-}
+DBNAME=${7:-lozi}
+DBPORT=${8:-5432}
+WHO=${9:-$DBUSER}
 
 INCLUDE_TOUGH=0
 #INCLUDE_TOUGH=1
@@ -19,9 +24,7 @@ INCLUDE_TOUGH=0
 THIS_PATH=`readlink -f "$0"`
 EXEC_DIR=`dirname "$THIS_PATH"` # Directory to find other scripts in
 
-export ACCURACY
-export EXEC_DIR
-export WHO
+export ACCURACY DBHOST DBUSER DBPASSWORD DBNAME DBPORT EXEC_DIR TIMEOUT WHO
 
 calc_one() {
   read -a params <<< "$1"
@@ -36,11 +39,11 @@ calc_one() {
   echo $a_den > $D/a_den
   echo $b_num > $D/b_num
   echo $b_den > $D/b_den
-  "$EXEC_DIR/calculate_entropy" -v $a_num $a_den $b_num $b_den $ACCURACY >> $D/output || true
+  timeout $TIMEOUT "$EXEC_DIR/calculate_entropy" -v $a_num $a_den $b_num $b_den $ACCURACY >> $D/output || true
   "$EXEC_DIR/extract_result.py" $D/output | while read lower upper ; do
      if [[ "x$lower" != "x" ]] ; then
        if [[ "x$upper" != "x" ]] ; then
-         psql -X -c "
+         PGPASSWORD="$DBPASSWORD" psql -X -h "$DBHOST" -d "$DBNAME" -p "$DBPORT" -U "$DBUSER" -c "
            UPDATE lozi SET lower=$lower, lwho='$WHO' WHERE
              a_num=$a_num AND a_den=$a_den AND b_num=$b_num AND b_den=$b_den
            AND lower < $lower;
@@ -54,9 +57,9 @@ calc_one() {
 }
 export -f calc_one
 
-psql -X -F' ' -P format=unaligned -t -c "
+PGPASSWORD="$DBPASSWORD" psql -X -h "$DBHOST" -d "$DBNAME" -p "$DBPORT" -U "$DBUSER" -F' ' -P format=unaligned -t -c "
   SELECT a_num, a_den, b_num, b_den FROM lozi
   WHERE (not tough OR $INCLUDE_TOUGH=1)
   AND upper-lower>$ACCURACY
   ORDER BY RANDOM() LIMIT $COUNT
-" | parallel --load 100% --memfree 4G --noswap --timeout $TIMEOUT calc_one
+" | parallel --load 100% --memfree 4G --noswap calc_one

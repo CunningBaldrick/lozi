@@ -5,18 +5,10 @@
 # updating whatever was there.  See also copy_data_to_postgresql.py, which goes
 # the other way.
 
+import argparse
 import os
-import sys
 import psycopg2
-
-# Database connection parameters - modify these with your database details.
-db_params = {
-#  'database': 'your_database',
-#  'user': 'your_username',
-#  'password': 'your_password',
-#  'host': 'localhost',
-#  'port': '5432'
-}               
+import sys
 
 COL_NAMES = ['a_num', 'a_den', 'b_num', 'b_den', 'lower', 'upper', 'lwho', 'uwho', 'comment']
 
@@ -31,7 +23,7 @@ def write_to_file(path, filename, data):
         if data is not None:
             file.write(data + '\n')
 
-def main(target_directory):
+def main(target_directory, db_params):
     with psycopg2.connect(**db_params) as conn:
         with conn.cursor() as cursor:
             # In order to not lose precision, convert the numeric columns (in
@@ -45,8 +37,19 @@ def main(target_directory):
                     write_to_file(sub_dir, col, row[i])
 
 if __name__ == '__main__':
-    if len(sys.argv) != 2:
-        print('Usage: copy_data_from_postgresql.py <target_directory>')
-        sys.exit(1)
-    target_directory = sys.argv[1]
-    main(target_directory)
+    parser = argparse.ArgumentParser(description='Download data from PostgreSQL and save into directory.')
+    parser.add_argument('--target_directory', type=str, help='Directory where data will be stored')
+    parser.add_argument('--database', default=os.getenv('PGDATABASE', 'lozi'), type=str, help='Database name')
+    parser.add_argument('--host', type=str, help='Database host')
+    parser.add_argument('--password', type=str, help='Database password')
+    parser.add_argument('--port', type=str, help='Database port')
+    parser.add_argument('--user', type=str, help='Database user')
+
+    args = parser.parse_args()
+
+    # Build db_params dictionary from command line arguments
+    db_params = {
+        key: value for key, value in vars(args).items() if key in {'database', 'user', 'password', 'host', 'port'} and value is not None
+    }
+
+    main(args.target_directory, db_params)
