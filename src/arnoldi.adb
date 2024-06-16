@@ -92,30 +92,36 @@ package body Arnoldi is
      Eigenvalue_I_P :    out Double_Precision;
      Tolerance      : in     Double_Precision
    ) is
-      ido    : aliased  Fortran_Integer := 0;
-      bmat   : constant Fortran_Character := To_Fortran ("I");
-      n      : aliased  Fortran_Integer := Last - First + 1;
-      which  : constant Fortran_Character := To_Fortran ("LM");
-      nev    : aliased  Fortran_Integer := 1;
-      tol    : aliased  Double_Precision := Tolerance;
-      ncv    : aliased  Fortran_Integer := Fortran_Integer'Min (3, n);
-      v      : Matrix_Pointer;
-      ldv    : aliased  Fortran_Integer := n;
-      iparam : Integer_Array (1 .. 11);
-      ipntr  : Integer_Array (1 .. 14);
-      workd  : Vector_Pointer;
-      lworkl : aliased  Fortran_Integer := 3*ncv**2 + 6*ncv;
-      workl  : Vector (1 .. lworkl);
-      info   : aliased  Fortran_Integer := 0; -- Use random initial vector
+      mode    : constant Fortran_Integer := 1; -- Standard eigenvalue problem.
+      ido     : aliased  Fortran_Integer := 0;
+      bmat    : constant Fortran_Character := To_Fortran ("I");
+      n       : aliased  Fortran_Integer := Last - First + 1;
+      which   : constant Fortran_Character := To_Fortran ("LM");
+      nev     : aliased  Fortran_Integer := 1;
+      tol     : aliased  Double_Precision := Tolerance;
+      ncv     : aliased  Fortran_Integer
+        := Fortran_Integer'Min (n, -- dnaupd maximim ncv
+          Fortran_Integer'Max (nev + 2, -- dnaupd minimum ncv
+            2 * nev + 1 -- our choice
+        ));
+      v       : Matrix_Pointer;
+      ldv     : aliased  Fortran_Integer := n;
+      maxiter : constant Fortran_Integer := 1000;
+      iparam  : Integer_Array (1 .. 11);
+      ipntr   : Integer_Array (1 .. 14);
+      workd   : Vector_Pointer;
+      lworkl  : aliased  Fortran_Integer := 3*ncv**2 + 6*ncv;
+      workl   : Vector (1 .. lworkl);
+      info    : aliased  Fortran_Integer := 0; -- Use random initial vector
 
-      rvec   : aliased  Logical := True; -- Compute Ritz vectors
-      howmny : constant Fortran_Character := To_Fortran ("A");
-      selec  : Logical_Array (1 .. ncv);
-      dr     : Vector (1 .. nev + 1);
-      di     : Vector (1 .. nev + 1);
-      sigmar : aliased  Double_Precision := 0.0;
-      sigmai : aliased  Double_Precision := 0.0;
-      workev : Vector (1 .. 3*ncv);
+      rvec    : aliased  Logical := True; -- Compute Ritz vectors
+      howmny  : constant Fortran_Character := To_Fortran ("A");
+      selec   : Logical_Array (1 .. ncv);
+      dr      : Vector (1 .. nev + 1);
+      di      : Vector (1 .. nev + 1);
+      sigmar  : aliased  Double_Precision := 0.0;
+      sigmai  : aliased  Double_Precision := 0.0;
+      workev  : Vector (1 .. 3*ncv);
    begin
       if Real_Part'First > First or Imaginary_Part'First > First or
         Real_Part'Last < Last or Imaginary_Part'Last < Last then
@@ -132,9 +138,9 @@ package body Arnoldi is
          v     := new Matrix (1 .. n, 1 .. ncv);
          workd := new Vector (1 .. 3*n);
 
-         iparam (1) := 1;
-         iparam (3) := 1000;
-         iparam (7) := 1;
+         iparam (1) := 1; -- ishift
+         iparam (3) := maxiter;
+         iparam (7) := mode;
 
          loop
             dnaupd (ido'Access, bmat, n'Access, which, nev'Access, tol'Access,
