@@ -154,7 +154,7 @@ package body Arnoldi is
          if info < 0 then
             Ada.Exceptions.Raise_Exception (
               Arnoldi_Error'Identity,
-              "dnaupd error, info is:" & Fortran_Integer'Image (info)
+              "dnaupd error, info is " & Fortran_Integer'Image (info)
             );
          end if;
 
@@ -168,7 +168,7 @@ package body Arnoldi is
          if info /= 0 then
             Ada.Exceptions.Raise_Exception (
               Arnoldi_Error'Identity,
-              "dneupd error, info is:" & Fortran_Integer'Image (info)
+              "dneupd error, info is " & Fortran_Integer'Image (info)
             );
          end if;
 
