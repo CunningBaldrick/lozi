@@ -1,3 +1,4 @@
+with Ada.Exceptions; use Ada.Exceptions;
 with Ada.Text_IO; use Ada.Text_IO; -- QQ
 
 with Ada.Unchecked_Deallocation;
@@ -227,8 +228,9 @@ package body Transition_Matrices.Spectral_Radius is
                   Real_Part (I) := Modulus (Real_Part (I), Imaginary_Part (I));
                end loop;
             exception
-               when others =>
-                  Put_Line ("    Arpack failed - trying power method");
+               when E : others =>
+                  Put_Line ("    Arpack failed (" & Exception_Message (E) &
+                    ") - trying power method");
                   for I in 1 .. N loop
                      Real_Part (I) := 1.0;
                   end loop;
