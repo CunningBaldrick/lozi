@@ -34,7 +34,8 @@ package Transition_Matrix_Rows is
       );
    procedure Visit_Non_Zero_Columns (Row : Matrix_Row);
    --  Call Action with the column number of each non-zero row entry.  If the
-   --  user sets Stop to True then any remaining columns are skipped.
+   --  user sets Stop to True then any remaining columns are skipped.  Columns
+   --  are visited in column order (column 1 before column 2 etc).
 
 
    type Cursor is private;
@@ -54,7 +55,8 @@ package Transition_Matrix_Rows is
      Row      : Matrix_Row;
      Position : Cursor
    ) return Cursor;
-   --  Advance the cursor to the next non-zero-column.
+   --  Advance the cursor to the next non-zero-column.  Columns
+   --  are visited in column order (column 1 before column 2 etc).
 
    function Has_Column (Position : Cursor) return Boolean;
    pragma Inline (Has_Column);
