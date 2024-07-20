@@ -2,12 +2,15 @@
 -- GCD --
 ---------
 
-function GCD (Left, Right : Integer) return Integer is
-   A : Integer := abs Left;
-   B : Integer := abs Right;
-   C : Integer;
+function GCD (Left, Right : Integer) return Positive is
+   A : Natural := abs Left;
+   B : Natural := abs Right;
+   C : Natural;
 begin
    if A = B then
+      if A = 0 then
+         raise Constraint_Error with "gcd not defined";
+      end if;
       return A;
    elsif A < B then
       C := A;

@@ -1,1 +1,1 @@
-function GCD (Left, Right : Integer) return Integer;
+function GCD (Left, Right : Integer) return Positive;
