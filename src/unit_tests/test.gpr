@@ -1,0 +1,13 @@
+with "../lozi.gpr";
+
+project Test is
+   for Main use ("test_all.adb");
+
+   package Compiler is
+      for Switches ("Ada") use Lozi.Compiler'Switches ("Ada") &
+        ("-gnata"); -- Enable assertions.
+      for Switches (others) use Lozi.Compiler'Switches (others);
+   end Compiler;
+
+   package Linker renames Lozi.Linker;
+end Test;

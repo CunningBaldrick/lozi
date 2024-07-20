@@ -38,7 +38,7 @@ begin
    Matrix (4, 3) := Two;
    Matrix (4, 4) := Four;
 
-   Row_Reduce (Matrix, Rows, Cols, Rank);
+   Row_Reduce (Matrix, Rows, Cols, Rank, True);
 
    for I in Row_Index loop
       for J in Col_Index loop

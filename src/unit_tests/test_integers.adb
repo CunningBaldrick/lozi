@@ -125,7 +125,9 @@ begin
       for J in I .. 1000 loop
          Test_Two (I, J);
          if I /= J then
+            pragma Warnings (Off, "may be in wrong order");
             Test_Two (J, I);
+            pragma Warnings (On, "may be in wrong order");
          end if;
       end loop;
       for J_Index in Special'Range loop

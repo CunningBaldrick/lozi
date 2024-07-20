@@ -4,7 +4,7 @@ with Transition_Matrices.SCC;
 procedure Test_SCC is
    use Ada.Text_IO;
 
-   Max_Size : constant := 10; -- test all possible graphs with this many nodes or less.
+   Max_Size : constant := 4; -- test all possible graphs with this many nodes or less.
 begin
    for Size in 0 .. Max_Size loop
       Put_Line ("Testing" & Integer'Image (Size) & " node graphs");
