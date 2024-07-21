@@ -1,5 +1,6 @@
 with GCD;
 with System;
+with Transition_Matrices.Iterate;
 with Transition_Matrices.Primitive;
 with Transition_Matrices.SCC;
 
@@ -241,7 +242,8 @@ package body Test_Primitive is
      Matrix  : Transition_Matrix_Type;
      SCC    : Vertex_List
    ) is
-      type Vector_Type is array (1 .. Matrix.Size) of Integer;
+      type Vector_Base is array (Positive range <>) of Integer;
+      subtype Vector_Type is Vector_Base (1 .. Matrix.Size);
 
       function Compute_Period return Positive;
       --  Compute the the gcd of the lengths of all cycles in the SCC in an
@@ -251,7 +253,8 @@ package body Test_Primitive is
       --  Iterate the given vector using the transition matrix Matrix
       --  while performing sanity checks.
 
-      procedure Unchecked_Iterate (Vec : in out Vector_Type);
+      procedure Unchecked_Iterate is new Transition_Matrices.Iterate
+        (Integer, 0, Vector_Base);
       --  Iterate the given vector using the transition matrix Matrix.
       --  Helper for Iterate.
 
@@ -261,6 +264,7 @@ package body Test_Primitive is
 
       procedure Iterate (Vec : in out Vector_Type) is
          W : Vector_Type;
+         R : Vector_Type;
       begin
          --  Any paths that lead out of the SCC should never reenter it.
          --  Check this by removing from Vec anything that is outside SCC
@@ -270,31 +274,15 @@ package body Test_Primitive is
          for V of SCC loop
             W (V) := Vec (V);
          end loop;
-         Unchecked_Iterate (Vec);
-         Unchecked_Iterate (W);
+         Unchecked_Iterate (Vec, R, Matrix);
+         Vec := R;
+         Unchecked_Iterate (W, R, Matrix);
+         W := R;
          for V of SCC loop
             --  Paths that leave the SCC should never reenter it.
             pragma Assert (W (V) = Vec (V), "Not a SCC?");
          end loop;
       end Iterate;
-
-      -----------------------
-      -- Unchecked_Iterate --
-      -----------------------
-
-      procedure Unchecked_Iterate (Vec : in out Vector_Type) is
-         R : Vector_Type;
-      begin
-         for J in 1 .. Matrix.Size loop
-            R (J) := 0;
-            for I in 1 .. Matrix.Size loop
-               if Transition_Exists (From => I, To => J, Matrix => Matrix) then
-                  R (J) := R (J) + Vec (I);
-               end if;
-            end loop;
-         end loop;
-         Vec := R;
-      end Unchecked_Iterate;
 
       --------------------
       -- Compute_Period --
