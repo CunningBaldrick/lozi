@@ -164,6 +164,8 @@ package body Arnoldi is
             );
          end if;
 
+         pragma Warnings (Off, -- See dneupd documentation for Z and V.
+           "writable actual for ""Z"" overlaps with actual for ""V""");
          dneupd (rvec'Access, howmny, selec, dr, di, v.all, ldv'Access,
            sigmar'Access, sigmai'Access, workev, bmat, n'Access, which,
            nev'Access, tol'Access, Real_Part, ncv'Access, v.all, ldv'Access,
