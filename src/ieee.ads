@@ -26,6 +26,9 @@ package IEEE is
    --  sets it back to whatever it was before when finalized.
 
 
+   function Correctly_Rounded_Pow (X, Y : Float) return Float;
+   --  Pow that properly follows IEEE rounding rules.
+
    function Correctly_Rounded_Sqrt (X : Float) return Float;
    --  Sqrt that properly follows IEEE rounding rules.
 

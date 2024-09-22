@@ -21,6 +21,18 @@ package body IEEE is
      Towards_Zero => towardzero
    );
 
+   function cr_powf(X, Y : Float) return Float with Import,
+     Convention => C, Link_Name => "cr_powf";
+
+   ---------------------------
+   -- Correctly_Rounded_Pow --
+   ---------------------------
+
+   function Correctly_Rounded_Pow (X, Y : Float) return Float is
+   begin
+     return cr_powf (X, Y);
+   end Correctly_Rounded_Pow;
+
    ----------------------------
    -- Correctly_Rounded_Sqrt --
    ----------------------------

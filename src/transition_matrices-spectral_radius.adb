@@ -2,7 +2,6 @@ with Ada.Exceptions; use Ada.Exceptions;
 with Ada.Text_IO; use Ada.Text_IO; -- QQ
 --with Transition_Matrices.IO; -- QQ
 
-with Ada.Numerics.Elementary_Functions;
 with Ada.Unchecked_Deallocation;
 with Arnoldi; use Arnoldi;
 with Fortran_Complex_Types;
@@ -16,7 +15,6 @@ with Transition_Matrices.Spectral_Radius_Helpers;
 
 package body Transition_Matrices.Spectral_Radius is
 
-   use Ada.Numerics.Elementary_Functions;
    use Spectral_Radius_Helpers;
 
    Extra_Iterations : constant := 100;
@@ -72,6 +70,7 @@ package body Transition_Matrices.Spectral_Radius is
          return Primitive (Primitive'First + Positive (Index) - 1);
       end Vertex;
    begin
+--      Ada.Text_IO.Put_Line ("Period: " & Period'Img);
       if N <= 0 then
          raise Constraint_Error;
       elsif N = 1 then
@@ -342,9 +341,41 @@ package body Transition_Matrices.Spectral_Radius is
 
       if Period /= 1 then
          --  Replace Low with Low^(1/Period), likewise with High.
-         -- QQ FIXME: Rounding!
-         Low := Low ** (1.0 / Float (Period));
-         High := High ** (1.0 / Float (Period));
+         declare
+            Original_Mode : constant IEEE.Rounding_Mode := IEEE.Get_Rounding_Mode;
+
+            Period_Lo, Period_Hi : Float;
+            Pow_Lo, Pow_Hi : Float;
+         begin
+            --  If Period is huge then converting it to Float may round.  This
+            --  likely never happens in practice, but we may as well take care
+            --  of it.
+            IEEE.Set_Rounding_Mode (IEEE.Downwards);
+            Period_Lo := Float (Period); -- Period as a float, rounded down.
+            IEEE.Set_Rounding_Mode (IEEE.Upwards);
+            Period_Hi := Float (Period); -- Period as a float, rounded up.
+            pragma Assert (Period_Lo <= Period_Hi);
+
+            --  Now compute upper and lower estimates for 1/Period.
+            Pow_Hi := 1.0 / Period_Lo; -- 1/Period as a float, rounded up.
+            IEEE.Set_Rounding_Mode (IEEE.Downwards);
+            Pow_Lo := 1.0 / Period_Hi; -- 1/Period as a float, rounded down.
+            pragma Assert (Pow_Lo <= Pow_Hi);
+            pragma Assert (Pow_Hi <= 1.0);
+
+            pragma Assert (1.0 <= Low and Low <= High);
+            Low := IEEE.Correctly_Rounded_Pow (Low, Pow_Lo);
+
+            IEEE.Set_Rounding_Mode (IEEE.Upwards);
+            High := IEEE.Correctly_Rounded_Pow (High, Pow_Hi);
+            pragma Assert (Low <= High);
+
+            IEEE.Set_Rounding_Mode (Original_Mode);
+         exception
+            when others =>
+               IEEE.Set_Rounding_Mode (Original_Mode);
+               raise;
+         end;
       end if;
    end Component_Estimate;
 
