@@ -1,3 +1,4 @@
+with Ada.Numerics.Elementary_Functions;
 with Interfaces.C; use Interfaces.C;
 
 package body IEEE is
@@ -20,9 +21,19 @@ package body IEEE is
      Towards_Zero => towardzero
    );
 
+   ----------------------------
+   -- Correctly_Rounded_Sqrt --
+   ----------------------------
+
+   function Correctly_Rounded_Sqrt (X : Float) return Float
+     renames Ada.Numerics.Elementary_Functions.Sqrt;
+   --  In practice all Sqrt implementations round correctly, because this has
+   --  been an IEEE requirement for ages.
+
    -----------------------
    -- Get_Rounding_Mode --
    -----------------------
+
    function fegetround return int;
    pragma Import (C, fegetround);
 
@@ -40,9 +51,29 @@ package body IEEE is
       raise Program_Error;
    end Get_Rounding_Mode;
 
+   --------------
+   -- Finalize --
+   --------------
+
+   overriding procedure Finalize (Rounding : in out Rounding_Section) is
+   begin
+      Set_Rounding_Mode (Rounding.Old_Mode);
+   end Finalize;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   overriding procedure Initialize (Rounding : in out Rounding_Section) is
+   begin
+      Rounding.Old_Mode := Get_Rounding_Mode;
+      Set_Rounding_Mode (Rounding.Mode);
+   end Initialize;
+
    -----------------------
    -- Set_Rounding_Mode --
    -----------------------
+
    function fesetround (round : int) return int;
    pragma Import (C, fesetround);
 
