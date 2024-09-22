@@ -1,35 +1,40 @@
 with Ada.Exceptions; use Ada.Exceptions;
 with Ada.Text_IO; use Ada.Text_IO; -- QQ
+--with Transition_Matrices.IO; -- QQ
 
+with Ada.Numerics.Elementary_Functions;
 with Ada.Unchecked_Deallocation;
 with Arnoldi; use Arnoldi;
 with Fortran_Complex_Types;
 with IEEE;
 with Interfaces.Fortran; use Interfaces.Fortran;
---  with Transition_Matrices.IO; -- QQ
+with System.Storage_Elements;
+with Transition_Matrices.Iterate;
+with Transition_Matrices.Primitive;
 with Transition_Matrices.SCC;
-with Transition_Matrix_Rows;
+with Transition_Matrices.Spectral_Radius_Helpers;
 
 package body Transition_Matrices.Spectral_Radius is
+
+   use Ada.Numerics.Elementary_Functions;
+   use Spectral_Radius_Helpers;
 
    Extra_Iterations : constant := 100;
    Power_Iterations : constant := 500;
 
    type Vector_Pointer is access Vector;
 
-   type Work_Vector is array (Positive range <>) of Double_Precision;
+   type Double_Work_Vector is array (Positive range <>) of Double_Precision;
 
-   type Work_Pointer is access Work_Vector;
+   type Work_Pointer is access System.Storage_Elements.Storage_Array;
 
-   procedure Free is new Ada.Unchecked_Deallocation (
-     Vector,
-     Vector_Pointer
-   );
+   procedure Free is new Ada.Unchecked_Deallocation
+     (System.Storage_Elements.Storage_Array, Work_Pointer);
+   procedure Free is new Ada.Unchecked_Deallocation
+     (Vector, Vector_Pointer);
 
-   procedure Free is new Ada.Unchecked_Deallocation (
-     Work_Vector,
-     Work_Pointer
-   );
+   procedure Double_Iterate is new Transition_Matrices.Iterate
+     (Double_Precision, 0.0, Double_Work_Vector);
 
    function Modulus (X, Y : Double_Precision) return Double_Precision;
    pragma Inline (Modulus);
@@ -40,78 +45,57 @@ package body Transition_Matrices.Spectral_Radius is
       return Fortran_Complex_Types."abs" (Fortran_Complex_Types.Compose_From_Cartesian (X, Y));
    end Modulus;
 
-   Irreducible_2x2 : constant array (Boolean, Boolean) of Float := (
-     False => (
-       False => 1.0,
-       True  => 1.618033988749894848204586834365638117720309  -- golden ratio
-     ),
-     True => (
-       False => 1.618033988749894848204586834365638117720309, -- golden ratio
-       True  => 2.0
-     )
-   );
+   procedure Component_Estimate (
+     Matrix    : in     Transition_Matrix_Type;
+     Primitive : in     Vertex_List;
+     Period    : in     Positive;
+     Low, High :    out Float;
+     Storage   :    out System.Storage_Elements.Storage_Array
+   ) with Pre => Storage'Length >= Required_Storage_Length (Matrix);
 
    procedure Component_Estimate (
      Matrix    : in     Transition_Matrix_Type;
-     Vertices  : in     Vertex_List;
+     Primitive : in     Vertex_List;
+     Period    : in     Positive;
      Low, High :    out Float;
-     Storage   : in     Work_Pointer
-   );
-
-   procedure Component_Estimate (
-     Matrix    : in     Transition_Matrix_Type;
-     Vertices  : in     Vertex_List;
-     Low, High :    out Float;
-     Storage   : in     Work_Pointer
+     Storage   :    out System.Storage_Elements.Storage_Array
    ) is
-      N : constant Fortran_Integer := Vertices'Length;
+      subtype Float_Matrix_Vector is Double_Work_Vector (1 .. Matrix.Size);
+
+      N : constant Fortran_Integer := Primitive'Length;
 
       function Vertex (Index : Fortran_Integer) return Positive;
       pragma Inline (Vertex);
 
       function Vertex (Index : Fortran_Integer) return Positive is
       begin
-         return Vertices (Vertices'First + Positive (Index) - 1);
+         return Primitive (Primitive'First + Positive (Index) - 1);
       end Vertex;
    begin
       if N <= 0 then
          raise Constraint_Error;
       elsif N = 1 then
-         if Transition_Exists (Vertex (1), Vertex (1), Matrix) then
-            Low  := 1.0;
-            High := 1.0;
-         else
-            Low  := 0.0;
-            High := 0.0;
-         end if;
+         Primitive_1x1_Unreduced (
+           Matrix    => Matrix,
+           Primitive => Primitive,
+           Period    => Period,
+           Low       => Low,
+           High      => High,
+           Storage   => Storage
+         );
       elsif N = 2 then
-         declare
-            I1  : constant Positive := Vertex (1);
-            I2  : constant Positive := Vertex (2);
-            T11 : constant Boolean  := Transition_Exists (I1, I1, Matrix);
-            T12 : constant Boolean  := Transition_Exists (I1, I2, Matrix);
-            T21 : constant Boolean  := Transition_Exists (I2, I1, Matrix);
-            T22 : constant Boolean  := Transition_Exists (I2, I2, Matrix);
-         begin
-            if T12 and T21 then -- irreducible component
-               High := Irreducible_2x2 (T11, T22);
-               Low  := High;
-               if T11 xor T22 then -- golden ratio
-                  --  Could do better if we knew how the machine rounds
-                  Low  := Float'Pred (Low);
-                  High := Float'Succ (High);
-               end if;
-            elsif T11 or T22 then
-               Low := 1.0;
-               High := 1.0;
-            else
-               Low := 0.0;
-               High := 0.0;
-            end if;
-         end;
+         Primitive_2x2_Unreduced (
+           Matrix    => Matrix,
+           Primitive => Primitive,
+           Period    => Period,
+           Low       => Low,
+           High      => High,
+           Storage   => Storage
+         );
       else -- N > 2
          declare
-            Work : Work_Pointer := Storage;
+            Double_Precision_Storage : Double_Work_Vector (1 .. 2 * Matrix.Size)
+              with Import, Address => Storage'Address;
 
             --  Source and Target are allowed to be the same
             procedure Iterate (
@@ -125,34 +109,31 @@ package body Transition_Matrices.Spectral_Radius is
             ) is
                Source_Base : constant Fortran_Integer := Source'First - 1;
                Target_Base : constant Fortran_Integer := Target'First - 1;
+
+               Input : Float_Matrix_Vector with Import;
+               for Input'Address use Double_Precision_Storage (1)'Address;
+               Output : Float_Matrix_Vector with Import;
+               for Output'Address use Double_Precision_Storage
+                 (Matrix.Size + 1)'Address;
             begin
-               for I in Work'Range loop
-                  Work (I) := 0.0;
+               for V of Input loop
+                  V := 0.0;
                end loop;
 
                for I in 1 .. N loop
-                  Work (Vertex (I)) := Source (Source_Base + I);
+                  Input (Vertex (I)) := Source (Source_Base + I);
+               end loop;
+
+               for Count in 1 .. Period loop
+                  Double_Iterate
+                    (Input => Input, Output => Output, Matrix => Matrix);
+                  if Count < Period then
+                     Input := Output;
+                  end if;
                end loop;
 
                for I in 1 .. N loop
-                  declare
-                     Sum : Double_Precision := 0.0;
-
-                     procedure Add_Contribution (
-                       Column : in     Positive;
-                       Stop   : in out Boolean
-                     ) is
-                        pragma Unreferenced (Stop);
-                     begin
-                        Sum := Sum + Work (Column);
-                     end Add_Contribution;
-
-                     procedure Sum_Column_Contributions is new
-                       Transition_Matrix_Rows.Visit_Non_Zero_Columns (Add_Contribution);
-                  begin
-                     Sum_Column_Contributions (Matrix.Rows (Vertex (I)));
-                     Target (Target_Base + I) := Sum;
-                  end;
+                  Target (Target_Base + I) := Output (Vertex (I));
                end loop;
             end Iterate;
 
@@ -166,8 +147,6 @@ package body Transition_Matrices.Spectral_Radius is
             Eigenvalue_I_P : Double_Precision;
 
             Epsilon : constant Double_Precision := Float'Model_Epsilon;
-
-            Allocate_Work : constant Boolean := (Work = null);
 
             Initial_Mode : constant IEEE.Rounding_Mode
               := IEEE.Get_Rounding_Mode;
@@ -204,10 +183,6 @@ package body Transition_Matrices.Spectral_Radius is
             --  on the following result: if A is irreducible and w is an
             --  extremal eigenvector for A then A|w|=lambda|w| where |w| is
             --  the vector with components |w|_i = |w_i|.
-            if Allocate_Work then
-               Work := new Work_Vector (1 .. Matrix.Size);
-            end if;
-
             Real_Part      := new Vector (1 .. N);
             Imaginary_Part := new Vector (1 .. N);
 
@@ -237,7 +212,7 @@ package body Transition_Matrices.Spectral_Radius is
                   Iterations := Power_Iterations;
             end;
 
-            --  Improve the estimate by iterating a few (!) times
+            --  Improve the estimate by iterating a few (!) times.
             for J in 1 .. Iterations loop
                Iterate (Real_Part.all, Real_Part.all);
                declare
@@ -353,9 +328,6 @@ package body Transition_Matrices.Spectral_Radius is
 --  end if;
             Free (Real_Part);
             Free (Imaginary_Part);
-            if Allocate_Work then
-               Free (Work);
-            end if;
          exception
             when others =>
                IEEE.Set_Rounding_Mode (Initial_Mode);
@@ -364,21 +336,16 @@ package body Transition_Matrices.Spectral_Radius is
 --  end if;
                Free (Real_Part);
                Free (Imaginary_Part);
-               if Allocate_Work then
-                  Free (Work);
-               end if;
                raise;
          end;
       end if;
-   end Component_Estimate;
 
-   procedure Component_Estimate (
-     Matrix    : in     Transition_Matrix_Type;
-     Vertices  : in     Vertex_List;
-     Low, High :    out Float
-   ) is
-   begin
-      Component_Estimate (Matrix, Vertices, Low, High, null);
+      if Period /= 1 then
+         --  Replace Low with Low^(1/Period), likewise with High.
+         -- QQ FIXME: Rounding!
+         Low := Low ** (1.0 / Float (Period));
+         High := High ** (1.0 / Float (Period));
+      end if;
    end Component_Estimate;
 
    --------------
@@ -391,28 +358,37 @@ package body Transition_Matrices.Spectral_Radius is
       Work : Work_Pointer;
 
       procedure Process_SCC (
-        Matrix   : Transition_Matrix_Type;
-        Vertices : Vertex_List
+        Matrix : Transition_Matrix_Type;
+        SCC    : Vertex_List
       );
-      pragma Inline (Process_SCC);
 
       procedure Process_SCC (
-        Matrix   : Transition_Matrix_Type;
-        Vertices : Vertex_List
+        Matrix : Transition_Matrix_Type;
+        SCC    : Vertex_List
       ) is
-         SCC_Low, SCC_High : Float;
-      begin
-         Component_Estimate (Matrix, Vertices, SCC_Low, SCC_High, Work);
+         procedure Process_Primitive (
+           Matrix    : Transition_Matrix_Type;
+           Primitive : Vertex_List;
+           Period    : Positive
+         ) is
+            SCC_Low, SCC_High : Float;
+         begin
+            Component_Estimate
+              (Matrix, Primitive, Period, SCC_Low, SCC_High, Work.all);
+            Low  := Float'Max (SCC_Low, Low);
+            High := Float'Max (SCC_High, High);
+         end Process_Primitive;
 
-         Low  := Float'Max (SCC_Low, Low);
-         High := Float'Max (SCC_High, High);
+         procedure Decycle is new Transition_Matrices.Primitive
+           (Vertex_List, Process_Primitive);
+      begin
+         Decycle (Matrix, SCC);
       end Process_SCC;
 
       procedure Process_Wandering_Vertices (
         Matrix   : Transition_Matrix_Type;
         Vertices : Vertex_List
       );
-      pragma Inline (Process_Wandering_Vertices);
 
       procedure Process_Wandering_Vertices (
         Matrix   : Transition_Matrix_Type;
@@ -429,7 +405,9 @@ package body Transition_Matrices.Spectral_Radius is
          Wander_Action => Process_Wandering_Vertices
       );
    begin
-      Work := new Work_Vector (1 .. Matrix.Size);
+      Work := new System.Storage_Elements.Storage_Array
+        (1 .. System.Storage_Elements.Storage_Offset
+          (Required_Storage_Length (Matrix)));
 
       Low  := 0.0;
       High := 0.0;
