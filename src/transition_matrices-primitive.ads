@@ -7,7 +7,7 @@ generic
     Period   : Positive
   );
 procedure Transition_Matrices.Primitive (
-  Matrix   : Transition_Matrix_Type;
-  Vertices : Vertex_List -- Must be ordered.
+  Matrix : Transition_Matrix_Type;
+  SCC    : Vertex_List -- Must be ordered.
 );
 pragma Elaborate_Body (Transition_Matrices.Primitive);

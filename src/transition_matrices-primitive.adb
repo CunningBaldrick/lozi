@@ -2,8 +2,8 @@ with GCD;
 with Transition_Matrix_Rows;
 
 procedure Transition_Matrices.Primitive (
-  Matrix   : Transition_Matrix_Type;
-  Vertices : Vertex_List
+  Matrix : Transition_Matrix_Type;
+  SCC    : Vertex_List
 ) is
    use Transition_Matrix_Rows;
 
@@ -14,10 +14,10 @@ procedure Transition_Matrices.Primitive (
    --  If Period already has a value then replace it with gcd(Period, Jump).
    --  Otherwise use the absolute value of Jump for Period.
 
-   type Node_Index is new Positive range Vertices'Range;
+   type Node_Index is new Positive range SCC'Range;
    --  "Vertex" refers to rows/columns of the original matrix/graph.
    --  "Node" refers to rows/columns of the submatrix/subgraph given
-   --  by Vertices.
+   --  by SCC.
 
    function Vertex (Node : Node_Index) return Positive;
    --  Returning the original matrix vertex corresponding to this node of the
@@ -41,7 +41,7 @@ procedure Transition_Matrices.Primitive (
 
    function Vertex (Node : Node_Index) return Positive is
    begin
-      return Vertices (Integer (Node));
+      return SCC (Integer (Node));
    end Vertex;
 
    --------------------
@@ -118,15 +118,15 @@ procedure Transition_Matrices.Primitive (
    end Visit;
 
 begin
-   if Vertices'Length = 0 then
-      Primitive_Action (Matrix, Vertices, 1);
+   if SCC'Length = 0 then
+      Primitive_Action (Matrix, SCC, 1);
       return;
    end if;
 
-   pragma Assert ((for all I in Vertices'Range => Vertices (I) <= Matrix.Size),
+   pragma Assert ((for all I in SCC'Range => SCC (I) <= Matrix.Size),
      "Vertex outside of matrix");
-   pragma Assert ((for all I in Vertices'First .. Vertices'Last -1 =>
-     Vertices (I) < Vertices (I + 1)), "Vertices not ordered");
+   pragma Assert ((for all I in SCC'First .. SCC'Last -1 =>
+     SCC (I) < SCC (I + 1)), "SCC not ordered");
 
    Current_Depth := 0;
    Visit (Node_Index'First);
@@ -134,7 +134,7 @@ begin
    pragma Assert (Period > 0, "Not a SCC");
 
    if Period = 1 then
-      Primitive_Action (Matrix, Vertices, 1);
+      Primitive_Action (Matrix, SCC, 1);
       return;
    end if;
 
