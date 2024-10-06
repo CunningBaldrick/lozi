@@ -4,6 +4,7 @@ project Lozi is
    Common_Switches := ("-O3", "-fstack-clash-protection", "-g", "-flto");
 --   Common_Switches := Common_Switches & ("-march=native");
    package Compiler is
+      for Switches ("Ada") use Common_Switches & ("-gnatwa");
       for Switches (others) use Common_Switches;
       for Local_Configuration_Pragmas use "gnat.adc";
    end Compiler;

@@ -26,10 +26,48 @@ package IEEE is
    --  sets it back to whatever it was before when finalized.
 
 
-   function Correctly_Rounded_Pow (X, Y : Float) return Float;
-   --  Pow that properly follows IEEE rounding rules.
+   function Convert (
+     I : Long_Integer;
+     R : Rounding_Mode
+   ) return Float;
+   --  Convert I to Float type, correctly rounde according to the given
+   --  rounding mode.  Rounding occurs if I is very big.
 
-   function Correctly_Rounded_Sqrt (X : Float) return Float;
-   --  Sqrt that properly follows IEEE rounding rules.
+   function Divide (
+     Num, Den : Float;
+     R : Rounding_Mode
+   ) return Float;
+   --  Returns Num / Den, correctly rounded according to the given rounding
+   --  mode.
+
+   function Pow (
+     X, Y : Float;
+     R : Rounding_Mode
+   ) return Float;
+   --  X ^ Y, correctly rounded according to the given rounding mode.
+
+   function Root_N (
+     X : Float;
+     N : Positive;
+     R : Rounding_Mode
+   ) return Float with Pre => R in Upwards | Downwards;
+   --  Returns X ^ (1/N), rounded according to the given rounding mode.
+   --  NOTE: Only Upwards and Downwards rounding is supported.
+   --  NOTE: The rounding is not "correct", in the sense that the result
+   --  may not be optimal, for example when rounding up there may be a
+   --  smaller floating point number which is also >= the mathematical
+   --  X ^ (1/N), so would have been more optimal to return.
+
+   function Sqrt (
+     X : Float;
+     R : Rounding_Mode
+   ) return Float;
+   --  Sqrt (X), correctly rounded according to the given rounding mode.
+
+   function Sum (
+     X, Y : Float;
+     R : Rounding_Mode
+   ) return Float;
+   --  Returns X + Y, correctly rounded according to the given rounding mode.
 
 end IEEE;

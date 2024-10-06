@@ -1,19 +1,64 @@
+with Ada.Exceptions;
+with Ada.Text_IO;
+with Arnoldi;
 with IEEE;
-with Interfaces.Fortran; use Interfaces.Fortran;
+with Fortran_Complex_Types;
 with Transition_Matrices.Iterate;
 
 package body Transition_Matrices.Spectral_Radius_Helpers is
 
+   use IEEE;
+   use Interfaces.Fortran;
+
+   Arnoldi_Extra_Iterations : constant := 100;
+   --  Number of extra iterations to perform on approximate eigenvectors
+   --  found using the Arnoldi method.
+
+   Power_Iterations_If_Arnoldi_Failed : constant := 500;
+   --  If the Arnoldi method fails then we fall back on just iterating a
+   --  lot to find an approximate Perron-Frobenious eigenvector.  This is
+   --  the number of iterations to perform.
+
+   type Double_Work_Vector is array (Positive range <>) of Double_Precision;
    type Long_Integer_Work_Vector is array (Positive range <>) of Long_Integer;
 
    procedure Iterate_Exact is new Transition_Matrices.Iterate
      (Long_Integer, 0, Long_Integer_Work_Vector);
    --  Iterate with perfect precision by using integers.
 
-   function Vertex (
-     Primitive : Vertex_List;
-     Index : Fortran_Integer
-   ) return Positive with Inline;
+   procedure Iterate_Inexact is new Transition_Matrices.Iterate
+     (Double_Precision, 0.0, Double_Work_Vector);
+   --  Inexact iteration using floating point numbers.
+
+   function Modulus (X, Y : Double_Precision) return Double_Precision is
+      (Fortran_Complex_Types."abs" (Fortran_Complex_Types.
+        Compose_From_Cartesian (X, Y)));
+   --  Complex modulus.  Tricky to get right, so use compiler provided version.
+
+   -------------------------
+   -- Primitive_Unreduced --
+   -------------------------
+
+   procedure Primitive_Unreduced (
+     Matrix    : in     Transition_Matrix_Type;
+     Primitive : in     Vertex_List;
+     Period    : in     Positive;
+     Low, High :    out Float;
+     Storage   :    out SSE.Storage_Array
+   ) is
+   begin
+      case Primitive'Length is
+         when 1 =>
+            Primitive_1x1_Unreduced
+              (Matrix, Primitive, Period, Low, High, Storage);
+         when 2 =>
+            Primitive_2x2_Unreduced
+              (Matrix, Primitive, Period, Low, High, Storage);
+         when others =>
+            Primitive_3x3_Or_Bigger_Unreduced
+              (Matrix, Primitive, Period, Low, High, Storage);
+      end case;
+   end Primitive_Unreduced;
 
    -----------------------------
    -- Primitive_1x1_Unreduced --
@@ -24,7 +69,7 @@ package body Transition_Matrices.Spectral_Radius_Helpers is
      Primitive : in     Vertex_List;
      Period    : in     Positive;
      Low, High :    out Float;
-     Storage   :    out System.Storage_Elements.Storage_Array
+     Storage   :    out SSE.Storage_Array
    ) is
       Long_Integer_Storage : Long_Integer_Work_Vector (1 .. 2 * Matrix.Size)
         with Import, Address => Storage'Address;
@@ -43,7 +88,7 @@ package body Transition_Matrices.Spectral_Radius_Helpers is
       for V of Input loop
          V := 0;
       end loop;
-      Input (Vertex (Primitive, 1)) := 1;
+      Input (Primitive (Primitive'First)) := 1;
 
       --  Iterate Period times.
       for Count in 1 .. Period loop
@@ -55,23 +100,14 @@ package body Transition_Matrices.Spectral_Radius_Helpers is
 
       --  The 1x1 transition matrix for the primitive component is exactly
       --    [T11]
-      T11 := Output (Vertex (Primitive, 1));
+      T11 := Output (Primitive (Primitive'First));
       pragma Assert (T11 > 0, "Not a primitive component?");
 
       --  The spectral radius of the Period'th power of Matrix is exactly
       --  T11, but if this is huge then converting to Float may involve
       --  rounding, so make sure to end up with Low <= T11 <= High.
-      declare
-         Rounding : IEEE.Rounding_Section (IEEE.Downwards) with Unreferenced;
-      begin
-         Low := Float (T11);
-      end;
-
-      declare
-         Rounding : IEEE.Rounding_Section (IEEE.Upwards) with Unreferenced;
-      begin
-         High := Float (T11);
-      end;
+      Low := Convert (T11, Downwards);
+      High := Convert (T11, Upwards);
       pragma Assert (Low <= High);
    end Primitive_1x1_Unreduced;
 
@@ -84,7 +120,7 @@ package body Transition_Matrices.Spectral_Radius_Helpers is
      Primitive : in     Vertex_List;
      Period    : in     Positive;
      Low, High :    out Float;
-     Storage   :    out System.Storage_Elements.Storage_Array
+     Storage   :    out SSE.Storage_Array
    ) is
       Long_Integer_Storage : Long_Integer_Work_Vector (1 .. 2 * Matrix.Size)
         with Import, Address => Storage'Address;
@@ -107,7 +143,7 @@ package body Transition_Matrices.Spectral_Radius_Helpers is
       for V of Input loop
          V := 0;
       end loop;
-      Input (Vertex (Primitive, 1)) := 1;
+      Input (Primitive (Primitive'First)) := 1;
 
       --  Iterate Period times.
       for Count in 1 .. Period loop
@@ -116,14 +152,14 @@ package body Transition_Matrices.Spectral_Radius_Helpers is
             Input := Output;
          end if;
       end loop;
-      T11 := Output (Vertex (Primitive, 1));
-      T12 := Output (Vertex (Primitive, 2));
+      T11 := Output (Primitive (Primitive'First));
+      T12 := Output (Primitive (Primitive'First + 1));
 
       --  Second input is [0, ..., 0, 1, ..., 0]
       for V of Input loop
          V := 0;
       end loop;
-      Input (Vertex (Primitive, 2)) := 1;
+      Input (Primitive (Primitive'First + 1)) := 1;
 
       --  Iterate Period times.
       for Count in 1 .. Period loop
@@ -132,8 +168,8 @@ package body Transition_Matrices.Spectral_Radius_Helpers is
             Input := Output;
          end if;
       end loop;
-      T21 := Output (Vertex (Primitive, 1));
-      T22 := Output (Vertex (Primitive, 2));
+      T21 := Output (Primitive (Primitive'First));
+      T22 := Output (Primitive (Primitive'First + 1));
 
       --  The 2x2 transition matrix for the primitive component is exactly
       --    [T11, T12]
@@ -147,34 +183,263 @@ package body Transition_Matrices.Spectral_Radius_Helpers is
       --    Exact_SR := (T11 + T22 + Sqrt(Discriminant)) / 2
       --  but computing this may lose precision in every step, so make sure
       --  to end up with Low <= Exact_SR <= High.
-      for Mode in IEEE.Upwards .. IEEE.Downwards loop
-         declare
-            Rounding : IEEE.Rounding_Section (Mode) with Unreferenced;
-         begin
-            Sqrt_Discriminant
-              := IEEE.Correctly_Rounded_Sqrt (Float (Discriminant));
-            Spectral_Radius := (Float (T11 + T22) + Sqrt_Discriminant) / 2.0;
-            case Mode is
-               when IEEE.Downwards =>
-                  Low := Spectral_Radius;
-               when IEEE.Upwards =>
-                  High := Spectral_Radius;
-            end case;
-         end;
+      for Mode in Upwards .. Downwards loop
+         Sqrt_Discriminant := Sqrt (Convert (Discriminant, Mode), Mode);
+         Spectral_Radius := Divide (
+           Num => Sum (
+             X => Convert (T11 + T22, Mode),
+             Y => Sqrt_Discriminant,
+             R => Mode
+           ),
+           Den => 2.0,
+           R   => Mode
+         );
+         case Mode is
+            when Downwards =>
+               Low := Spectral_Radius;
+            when Upwards =>
+               High := Spectral_Radius;
+         end case;
       end loop;
       pragma Assert (Low <= High);
    end Primitive_2x2_Unreduced;
 
-   ------------
-   -- Vertex --
-   ------------
+   ---------------------------------------
+   -- Primitive_3x3_Or_Bigger_Unreduced --
+   ---------------------------------------
 
-   function Vertex (
-     Primitive : Vertex_List;
-     Index : Fortran_Integer
-   ) return Positive is
+   procedure Primitive_3x3_Or_Bigger_Unreduced (
+     Matrix    : in     Transition_Matrix_Type;
+     Primitive : in     Vertex_List;
+     Period    : in     Positive;
+     Low, High :    out Float;
+     Storage   :    out SSE.Storage_Array
+   ) is
+      Double_Precision_Storage : Double_Work_Vector (1 .. 4 * Matrix.Size)
+        with Import, Address => Storage'Address;
+
+      subtype Double_Matrix_Vector is Double_Work_Vector (1 .. Matrix.Size);
+
+      subtype Vector_Type is Arnoldi.Vector (1 .. Primitive'Length);
+      --  A vector for the primitive component.
+
+      procedure Iterate (
+        Source : in     Vector_Type;
+        Target :    out Vector_Type
+      );
+      --  Source and Target are vectors for the primitive component, so
+      --  may be much shorter than Matrix.Size.  This iterates them using
+      --  the matrix from the primitive component to itself, which is the
+      --  restriction of Matrix^Period to the primitive component.
+
+      pragma Warnings (Off,
+        "writable actual for ""Source"" overlaps with actual for ""Target""");
+      --  It is OK for Source and Target to be the same when calling Iterate.
+
+      procedure Iterate (
+        Source : in     Vector_Type;
+        Target :    out Vector_Type
+      ) is
+         function Vertex (
+           Primitive : Vertex_List;
+           Index : Fortran_Integer
+         ) return Positive is
+         begin
+            return Primitive (Primitive'First + Positive (Index) - 1);
+         end Vertex;
+
+         Input : Double_Matrix_Vector with Import;
+         for Input'Address use Double_Precision_Storage (1)'Address;
+         Output : Double_Matrix_Vector with Import;
+         for Output'Address use Double_Precision_Storage
+           (Matrix.Size + 1)'Address;
+      begin
+         --  Turn the primitive component vector Source into a vector the size
+         --  of the entire matrix, by putting zero for nodes outside of the
+         --  primitive component, and the corresponding component of Source
+         --  for nodes in the primitive component.
+         for V of Input loop
+            V := 0.0;
+         end loop;
+         for I in Source'Range loop
+            Input (Vertex (Primitive, I)) := Source (I);
+         end loop;
+
+         --  Iterate it by the full matrix Period times.
+         for Count in 1 .. Period loop
+            Iterate_Inexact
+              (Input => Input, Output => Output, Matrix => Matrix);
+            if Count < Period then
+               Input := Output;
+            end if;
+         end loop;
+
+         --  Extract the components corresponding to the primitive component
+         --  into Target.
+         for I in Target'Range loop
+            Target (I) := Output (Vertex (Primitive, I));
+         end loop;
+      end Iterate;
+
+      procedure Compute_Eigenvector is
+        new Arnoldi.Extremal_Eigenvector (Iterate);
+
+      Real_Part : Vector_Type with Import;
+      for Real_Part'Address use Double_Precision_Storage
+        (2 * Matrix.Size + 1)'Address;
+      Imaginary_Part : Vector_Type with Import;
+      for Imaginary_Part'Address use Double_Precision_Storage
+        (3 * Matrix.Size + 1)'Address;
+
+      Eigenvalue_R_P : Double_Precision;
+      Eigenvalue_I_P : Double_Precision;
+
+      Epsilon : constant Double_Precision := Float'Model_Epsilon;
+
+      Iterations : Positive := Arnoldi_Extra_Iterations;
    begin
-      return Primitive (Primitive'First + Positive (Index) - 1);
-   end Vertex;
+      --  In what follows A denotes the matrix obtained from Matrix
+      --  by deleting all rows and columns not in Vertices.  To
+      --  estimate the spectral radius of A we exploit the fact that
+      --  A is non-negative.  The following facts are consequences
+      --  of this.  Fact 1: if v is any strictly positive vector,
+      --  then the spectral radius <= max_i (Av)_i / v_i.  Fact 2:
+      --  if v is any non-negative vector then min_i (Av)_i / v_i
+      --  <= spectral radius, where the minimum is taken over those
+      --  values of i for which v_i is non-zero.
+      --
+      --  The following code works well if A is irreducible, which
+      --  is the case we care about since the main routine Estimate
+      --  calls this one only for irreducible components.  If A is
+      --  irreducible then we get a perfect estimate for the spectral
+      --  radius when v is a non-negative eigenvector of A with
+      --  eigenvalue lambda, where lambda is the spectral radius.
+      --  The Perron-Frobenius theorem tells us that such a vector
+      --  always exists when A is non-negative.  If A is irreducible
+      --  then v is strictly positive, and both of the above facts can
+      --  be used.  They give lambda <= spectral radius <= lambda.
+      --
+      --  In order to find v it is enough to find any eigenvector w
+      --  of A whose eigenvalue mu satisfies |mu| = lambda.  Here mu
+      --  and w may be complex.  Such an eigenvalue mu is called an
+      --  extremal eigenvalue; the eigenvector w is called an extremal
+      --  eigenvector.  If we have such a w then by taking absolute
+      --  values of the components of w we obtain v.  This is based
+      --  on the following result: if A is irreducible and w is an
+      --  extremal eigenvector for A then A|w|=lambda|w| where |w| is
+      --  the vector with components |w|_i = |w_i|.
+
+      --  Find an extremal eigenvector
+      begin
+         Compute_Eigenvector (
+           First          => Vector_Type'First,
+           Last           => Vector_Type'Last,
+           Real_Part      => Real_Part,
+           Imaginary_Part => Imaginary_Part,
+           Eigenvalue_R_P => Eigenvalue_R_P,
+           Eigenvalue_I_P => Eigenvalue_I_P,
+           Tolerance      => Epsilon
+         );
+
+         --  Take absolute values
+         for I in Vector_Type'Range loop
+            Real_Part (I) := Modulus (Real_Part (I), Imaginary_Part (I));
+         end loop;
+      exception
+         when E : others =>
+            Ada.Text_IO.Put_Line ("    Arpack failed (" &
+              Ada.Exceptions.Exception_Message (E) &
+                ") - trying power method");
+            for I in Vector_Type'Range loop
+               Real_Part (I) := 1.0;
+            end loop;
+            Iterations := Power_Iterations_If_Arnoldi_Failed;
+      end;
+
+      --  Improve the estimate by iterating a few (!) times.
+      for J in 1 .. Iterations loop
+         Iterate (Real_Part, Real_Part);
+         declare
+            Max : Double_Precision := Epsilon;
+         begin
+            for I in Vector_Type'Range loop
+               if Real_Part (I) > Max then
+                  Max := Real_Part (I);
+               end if;
+            end loop;
+
+            for I in Vector_Type'Range loop
+               Real_Part (I) := Real_Part (I) / Max;
+            end loop;
+         end;
+      end loop;
+
+      --  High: we add Epsilon to each component
+      declare
+         Rounding : Rounding_Section (Upwards) with Unreferenced;
+
+         Estimate : Double_Precision := 0.0;
+         Divisor  : Double_Precision;
+         --  Force the compiler to store the result in memory rather
+         --  than in a register.  This makes the correctness of the
+         --  algorithm easier to analyse, since registers can have
+         --  more precision than the Double_Precision type;
+         pragma Volatile (Divisor);
+      begin
+         for I in Vector_Type'Range loop
+            Imaginary_Part (I) := Real_Part (I) + Epsilon;
+         end loop;
+
+         Iterate (Imaginary_Part, Imaginary_Part);
+
+         for I in Vector_Type'Range loop
+            Divisor := Real_Part (I) + Epsilon;
+            Estimate := Double_Precision'Max (
+              Estimate,
+              Imaginary_Part (I) / Divisor
+            );
+         end loop;
+
+         High := Float (Estimate);
+      end;
+
+      --  Low: we set any component less than Epsilon to zero
+      declare
+         Rounding : Rounding_Section (Downwards) with Unreferenced;
+
+         Estimate : Double_Precision;
+         Estimate_Set : Boolean := False;
+      begin
+         for I in Vector_Type'Range loop
+            if Real_Part (I) > Epsilon then
+               Imaginary_Part (I) := Real_Part (I);
+            else
+               Imaginary_Part (I) := 0.0;
+            end if;
+         end loop;
+
+         Iterate (Imaginary_Part, Imaginary_Part);
+
+         for I in Vector_Type'Range loop
+            if Real_Part (I) > Epsilon then
+               if Estimate_Set then
+                  Estimate := Double_Precision'Min (
+                    Estimate,
+                    Imaginary_Part (I) / Real_Part (I)
+                  );
+               else
+                  Estimate := Imaginary_Part (I) / Real_Part (I);
+                  Estimate_Set := True;
+               end if;
+            end if;
+         end loop;
+
+         if Estimate_Set then
+            Low := Float (Estimate);
+         else
+            Low := 0.0;
+         end if;
+      end;
+   end Primitive_3x3_Or_Bigger_Unreduced;
 
 end Transition_Matrices.Spectral_Radius_Helpers;

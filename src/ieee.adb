@@ -2,6 +2,7 @@ with Ada.Numerics.Elementary_Functions;
 with Interfaces.C; use Interfaces.C;
 
 package body IEEE is
+
    function tonearest return int;
    pragma Import (C, tonearest);
 
@@ -24,23 +25,31 @@ package body IEEE is
    function cr_powf(X, Y : Float) return Float with Import,
      Convention => C, Link_Name => "cr_powf";
 
-   ---------------------------
-   -- Correctly_Rounded_Pow --
-   ---------------------------
+   -------------
+   -- Convert --
+   -------------
 
-   function Correctly_Rounded_Pow (X, Y : Float) return Float is
+   function Convert (
+     I : Long_Integer;
+     R : Rounding_Mode
+   ) return Float is
+      Rounding : Rounding_Section (R) with Unreferenced;
    begin
-     return cr_powf (X, Y);
-   end Correctly_Rounded_Pow;
+      return Float (I);
+   end Convert;
 
-   ----------------------------
-   -- Correctly_Rounded_Sqrt --
-   ----------------------------
+   ------------
+   -- Divide --
+   ------------
 
-   function Correctly_Rounded_Sqrt (X : Float) return Float
-     renames Ada.Numerics.Elementary_Functions.Sqrt;
-   --  In practice all Sqrt implementations round correctly, because this has
-   --  been an IEEE requirement for ages.
+   function Divide (
+     Num, Den : Float;
+     R : Rounding_Mode
+   ) return Float is
+      Rounding : Rounding_Section (R) with Unreferenced;
+   begin
+      return Num / Den;
+   end Divide;
 
    -----------------------
    -- Get_Rounding_Mode --
@@ -82,6 +91,65 @@ package body IEEE is
       Set_Rounding_Mode (Rounding.Mode);
    end Initialize;
 
+   ---------
+   -- Pow --
+   ---------
+
+   function Pow (
+     X, Y : Float;
+     R : Rounding_Mode
+   ) return Float is
+      Rounding : Rounding_Section (R) with Unreferenced;
+   begin
+      return cr_powf (X, Y);
+   end Pow;
+
+   ------------
+   -- Root_N --
+   ------------
+
+   function Root_N (
+     X : Float;
+     N : Positive;
+     R : Rounding_Mode
+   ) return Float is
+      N_Lo, N_Hi, Pow_Lo, Pow_Hi : Float;
+   begin
+      if N = 1 then
+         return X;
+      elsif N = 2 then
+         return Sqrt (X, R);
+      end if;
+
+      if X = 0.0 then
+         return X;
+      end if;
+
+      if not (X > 0.0) then
+         raise Constraint_Error;
+      end if;
+
+      --  If N is huge then converting it to Float may round.
+      N_Lo := Convert (Long_Integer (N), Downwards);
+      N_Hi := Convert (Long_Integer (N), Upwards);
+
+      --  Now compute upper and lower estimates for 1/N.
+      Pow_Hi := Divide (1.0, N_Lo, Upwards);
+      Pow_Lo := Divide (1.0, N_Hi, Downwards);
+      pragma Assert (Pow_Lo <= Pow_Hi and Pow_Hi <= 1.0);
+
+      return (case R is
+        when Downwards =>
+          (if X >= 1.0 then Pow (X, Pow_Lo, R)
+           else Pow (X, Pow_Hi, R)),
+        when Upwards =>
+          (if X >= 1.0 then Pow (X, Pow_Hi, R)
+           else Pow (X, Pow_Lo, R)),
+        when others =>
+          raise Program_Error
+      );
+   end Root_N;
+
    -----------------------
    -- Set_Rounding_Mode --
    -----------------------
@@ -98,4 +166,33 @@ package body IEEE is
          raise Unsupported_Mode;
       end if;
    end Set_Rounding_Mode;
+
+   ----------
+   -- Sqrt --
+   ----------
+
+   function Sqrt (
+     X : Float;
+     R : Rounding_Mode
+   ) return Float is
+      Rounding : Rounding_Section (R) with Unreferenced;
+   begin
+      --  In practice all Sqrt implementations round correctly, because this
+      --  has been an IEEE requirement for ages.
+      return Ada.Numerics.Elementary_Functions.Sqrt (X);
+   end Sqrt;
+
+   ---------
+   -- Sum --
+   ---------
+
+   function Sum (
+     X, Y : Float;
+     R : Rounding_Mode
+   ) return Float is
+      Rounding : Rounding_Section (R) with Unreferenced;
+   begin
+      return X + Y;
+   end Sum;
+
 end IEEE;
