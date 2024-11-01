@@ -40,6 +40,12 @@ package IEEE is
    --  Returns Num / Den, correctly rounded according to the given rounding
    --  mode.
 
+   function Log (
+     X : Float;
+     R : Rounding_Mode
+   ) return Float;
+   --  ln(X), correctly rounded according to the given rounding mode.
+
    function Pow (
      X, Y : Float;
      R : Rounding_Mode

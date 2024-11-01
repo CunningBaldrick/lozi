@@ -22,6 +22,9 @@ package body IEEE is
      Towards_Zero => towardzero
    );
 
+   function cr_logf(X : Float) return Float with Import,
+     Convention => C, Link_Name => "cr_logf";
+
    function cr_powf(X, Y : Float) return Float with Import,
      Convention => C, Link_Name => "cr_powf";
 
@@ -90,6 +93,19 @@ package body IEEE is
       Rounding.Old_Mode := Get_Rounding_Mode;
       Set_Rounding_Mode (Rounding.Mode);
    end Initialize;
+
+   ---------
+   -- Log --
+   ---------
+
+   function Log (
+     X : Float;
+     R : Rounding_Mode
+   ) return Float is
+      Rounding : Rounding_Section (R) with Unreferenced;
+   begin
+      return cr_logf (X);
+   end Log;
 
    ---------
    -- Pow --

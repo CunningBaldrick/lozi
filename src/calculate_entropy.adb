@@ -2,10 +2,10 @@ with Ada.Command_Line;
 with Ada.Exceptions;
 with Ada.Float_Text_IO;
 with Ada.Integer_Text_IO;
-with Ada.Numerics.Elementary_Functions;
 with Ada.Text_IO;
 with Ada.Unchecked_Deallocation;
 with Arnoldi;
+with IEEE;
 with Integers;
 with Lower_Transition_Matrix;
 with Lozi;
@@ -24,7 +24,9 @@ with Trim_Partition;
 with Upper_Transition_Matrix;
 
 procedure Calculate_Entropy is
+
    use Ada;
+   use IEEE;
 
    procedure Free is new Unchecked_Deallocation (
      Transition_Matrices.Transition_Matrix_Type,
@@ -35,10 +37,8 @@ procedure Calculate_Entropy is
 
    Best_Upper_Radius : Float := 2.0; -- Maximum possible spectral radius
    Best_Lower_Radius : Float := 1.0; -- Minimum possible spectral radius
-   Best_Upper_Entropy : Float :=
-     Numerics.Elementary_Functions.Log (Best_Upper_Radius);
-   Best_Lower_Entropy : Float :=
-     Numerics.Elementary_Functions.Log (Best_Lower_Radius);
+   Best_Upper_Entropy : Float := Log (Best_Upper_Radius, Upwards);
+   Best_Lower_Entropy : Float := Log (Best_Lower_Radius, Downwards);
    Old_Best_Upper_Entropy : Float := Best_Upper_Entropy;
    Old_Best_Lower_Entropy : Float := Best_Lower_Entropy;
 
@@ -115,10 +115,9 @@ begin
 
          Num_Digits := Positive (
            -Float'Floor (
-             Numerics.Elementary_Functions.Log (
-               Accuracy / 2.0,
-               Base => 10.0
-             )
+             --  Neither accuracy nor the rounding used matters here.
+             Log (Accuracy / 2.0, To_Nearest) /
+               Log (10.0, To_Nearest)
            )
          );
 
@@ -321,9 +320,7 @@ begin
                            Best_Upper_Radius := Spectral_Radius;
                            Old_Best_Upper_Entropy := Best_Upper_Entropy;
                            Best_Upper_Entropy :=
-                             Numerics.Elementary_Functions.Log (
-                               Best_Upper_Radius
-                             );
+                             Log (Best_Upper_Radius, Upwards);
                         end if;
 
                         if Verbose then
@@ -336,9 +333,8 @@ begin
                            Text_IO.New_Line;
                            Text_IO.Put ("  Entropy (natural logarithm):");
                            Float_Text_IO.Put (
-                             Numerics.Elementary_Functions.Log (
-                               Spectral_Radius
-                             ),
+                             --  Rounding doesn't matter, purely informative.
+                             Log (Spectral_Radius, To_Nearest),
                              Aft => Num_Digits + 2,
                              Exp => 0
                            );
@@ -438,9 +434,7 @@ begin
                            Best_Lower_Radius := Spectral_Radius;
                            Old_Best_Lower_Entropy := Best_Lower_Entropy;
                            Best_Lower_Entropy :=
-                             Numerics.Elementary_Functions.Log (
-                               Best_Lower_Radius
-                             );
+                             Log (Best_Lower_Radius, Downwards);
                         end if;
 
                         if Verbose then
@@ -454,9 +448,8 @@ begin
                               Text_IO.New_Line;
                               Text_IO.Put ("  Entropy (natural logarithm):");
                               Float_Text_IO.Put (
-                                Numerics.Elementary_Functions.Log (
-                                  Spectral_Radius
-                                ),
+                                --  Rounding doesn't matter, purely informative.
+                                Log (Spectral_Radius, To_Nearest),
                                 Aft => Num_Digits + 2,
                                 Exp => 0
                               );
