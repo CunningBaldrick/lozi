@@ -3,32 +3,32 @@ with Ada.Text_IO;
 with Arnoldi;
 with IEEE;
 with Fortran_Complex_Types;
-with Transition_Matrices.Iterate;
+with Transition_Matrices.Multiply;
 
 package body Transition_Matrices.Spectral_Radius_Helpers is
 
    use IEEE;
    use Interfaces.Fortran;
 
-   Arnoldi_Extra_Iterations : constant := 100;
-   --  Number of extra iterations to perform on approximate eigenvectors
+   Arnoldi_Extra_Multiplications : constant := 100;
+   --  Number of extra multiplications to perform on approximate eigenvectors
    --  found using the Arnoldi method.
 
-   Power_Iterations_If_Arnoldi_Failed : constant := 500;
-   --  If the Arnoldi method fails then we fall back on just iterating a
+   Power_Multiplications_If_Arnoldi_Failed : constant := 500;
+   --  If the Arnoldi method fails then we fall back on just multiplying a
    --  lot to find an approximate Perron-Frobenious eigenvector.  This is
-   --  the number of iterations to perform.
+   --  the number of multiplications to perform.
 
    type Double_Work_Vector is array (Positive range <>) of Double_Precision;
    type Long_Integer_Work_Vector is array (Positive range <>) of Long_Integer;
 
-   procedure Iterate_Exact is new Transition_Matrices.Iterate
+   procedure Multiply_Exact is new Transition_Matrices.Multiply
      (Long_Integer, 0, Long_Integer_Work_Vector);
-   --  Iterate with perfect precision by using integers.
+   --  Multiply with perfect precision by using integers.
 
-   procedure Iterate_Inexact is new Transition_Matrices.Iterate
+   procedure Multiply_Inexact is new Transition_Matrices.Multiply
      (Double_Precision, 0.0, Double_Work_Vector);
-   --  Inexact iteration using floating point numbers.
+   --  Inexact multiplication using floating point numbers.
 
    function Modulus (X, Y : Double_Precision) return Double_Precision is
       (Fortran_Complex_Types."abs" (Fortran_Complex_Types.
@@ -90,9 +90,9 @@ package body Transition_Matrices.Spectral_Radius_Helpers is
       end loop;
       Input (Primitive (Primitive'First)) := 1;
 
-      --  Iterate Period times.
+      --  Multiply Period times.
       for Count in 1 .. Period loop
-         Iterate_Exact (Input => Input, Output => Output, Matrix => Matrix);
+         Multiply_Exact (Input => Input, Output => Output, Matrix => Matrix);
          if Count < Period then
             Input := Output;
          end if;
@@ -145,9 +145,9 @@ package body Transition_Matrices.Spectral_Radius_Helpers is
       end loop;
       Input (Primitive (Primitive'First)) := 1;
 
-      --  Iterate Period times.
+      --  Multiply Period times.
       for Count in 1 .. Period loop
-         Iterate_Exact (Input => Input, Output => Output, Matrix => Matrix);
+         Multiply_Exact (Input => Input, Output => Output, Matrix => Matrix);
          if Count < Period then
             Input := Output;
          end if;
@@ -161,9 +161,9 @@ package body Transition_Matrices.Spectral_Radius_Helpers is
       end loop;
       Input (Primitive (Primitive'First + 1)) := 1;
 
-      --  Iterate Period times.
+      --  Multiply Period times.
       for Count in 1 .. Period loop
-         Iterate_Exact (Input => Input, Output => Output, Matrix => Matrix);
+         Multiply_Exact (Input => Input, Output => Output, Matrix => Matrix);
          if Count < Period then
             Input := Output;
          end if;
@@ -223,20 +223,20 @@ package body Transition_Matrices.Spectral_Radius_Helpers is
       subtype Vector_Type is Arnoldi.Vector (1 .. Primitive'Length);
       --  A vector for the primitive component.
 
-      procedure Iterate (
+      procedure Multiply (
         Source : in     Vector_Type;
         Target :    out Vector_Type
       );
       --  Source and Target are vectors for the primitive component, so
-      --  may be much shorter than Matrix.Size.  This iterates them using
+      --  may be much shorter than Matrix.Size.  This multiplies them using
       --  the matrix from the primitive component to itself, which is the
       --  restriction of Matrix^Period to the primitive component.
 
       pragma Warnings (Off,
         "writable actual for ""Source"" overlaps with actual for ""Target""");
-      --  It is OK for Source and Target to be the same when calling Iterate.
+      --  It is OK for Source and Target to be the same when calling Multiply.
 
-      procedure Iterate (
+      procedure Multiply (
         Source : in     Vector_Type;
         Target :    out Vector_Type
       ) is
@@ -265,9 +265,9 @@ package body Transition_Matrices.Spectral_Radius_Helpers is
             Input (Vertex (Primitive, I)) := Source (I);
          end loop;
 
-         --  Iterate it by the full matrix Period times.
+         --  Multiply it by the full matrix Period times.
          for Count in 1 .. Period loop
-            Iterate_Inexact
+            Multiply_Inexact
               (Input => Input, Output => Output, Matrix => Matrix);
             if Count < Period then
                Input := Output;
@@ -279,10 +279,10 @@ package body Transition_Matrices.Spectral_Radius_Helpers is
          for I in Target'Range loop
             Target (I) := Output (Vertex (Primitive, I));
          end loop;
-      end Iterate;
+      end Multiply;
 
       procedure Compute_Eigenvector is
-        new Arnoldi.Extremal_Eigenvector (Iterate);
+        new Arnoldi.Extremal_Eigenvector (Multiply);
 
       Real_Part : Vector_Type with Import;
       for Real_Part'Address use Double_Precision_Storage
@@ -296,7 +296,7 @@ package body Transition_Matrices.Spectral_Radius_Helpers is
 
       Epsilon : constant Double_Precision := Float'Model_Epsilon;
 
-      Iterations : Positive := Arnoldi_Extra_Iterations;
+      Multiplications : Positive := Arnoldi_Extra_Multiplications;
    begin
       --  In what follows A denotes the matrix obtained from Matrix
       --  by deleting all rows and columns not in Vertices.  To
@@ -353,12 +353,12 @@ package body Transition_Matrices.Spectral_Radius_Helpers is
             for I in Vector_Type'Range loop
                Real_Part (I) := 1.0;
             end loop;
-            Iterations := Power_Iterations_If_Arnoldi_Failed;
+            Multiplications := Power_Multiplications_If_Arnoldi_Failed;
       end;
 
-      --  Improve the estimate by iterating a few (!) times.
-      for J in 1 .. Iterations loop
-         Iterate (Real_Part, Real_Part);
+      --  Improve the estimate by multiplying a few (!) times.
+      for J in 1 .. Multiplications loop
+         Multiply (Real_Part, Real_Part);
          declare
             Max : Double_Precision := Epsilon;
          begin
@@ -390,7 +390,7 @@ package body Transition_Matrices.Spectral_Radius_Helpers is
             Imaginary_Part (I) := Real_Part (I) + Epsilon;
          end loop;
 
-         Iterate (Imaginary_Part, Imaginary_Part);
+         Multiply (Imaginary_Part, Imaginary_Part);
 
          for I in Vector_Type'Range loop
             Divisor := Real_Part (I) + Epsilon;
@@ -418,7 +418,7 @@ package body Transition_Matrices.Spectral_Radius_Helpers is
             end if;
          end loop;
 
-         Iterate (Imaginary_Part, Imaginary_Part);
+         Multiply (Imaginary_Part, Imaginary_Part);
 
          for I in Vector_Type'Range loop
             if Real_Part (I) > Epsilon then

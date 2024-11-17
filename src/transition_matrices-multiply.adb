@@ -1,16 +1,12 @@
-procedure Transition_Matrices.Iterate (
+procedure Transition_Matrices.Multiply (
   Input  : in     Weight_Vector;
   Output :    out Weight_Vector;
   Matrix : in     Transition_Matrix_Type
 ) is
 begin
-   for Weight of Output loop
-      Weight := Zero;
-   end loop;
-
    for I in Matrix.Rows'Range loop
       declare
-         Weight : constant Weight_Type := Input (I);
+         Sum : Weight_Type := Zero;
 
          procedure Accumulate (
            Column : in     Positive;
@@ -18,15 +14,14 @@ begin
          ) is
             pragma Unreferenced (Stop);
          begin
-            Output (Column) := Output (Column) + Weight;
+            Sum := Sum + Input (Column);
          end Accumulate;
 
-         procedure Accumulate_Row is new
+         procedure Sum_Column_Contributions is new
            Transition_Matrix_Rows.Visit_Non_Zero_Columns (Accumulate);
       begin
-         if Weight /= Zero then
-            Accumulate_Row (Matrix.Rows (I));
-         end if;
+         Sum_Column_Contributions (Matrix.Rows (I));
+         Output (I) := Sum;
       end;
    end loop;
-end Transition_Matrices.Iterate;
+end Transition_Matrices.Multiply;

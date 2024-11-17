@@ -1,6 +1,6 @@
 with IEEE;
 with System.Storage_Elements;
-with Transition_Matrices.Iterate;
+with Transition_Matrices.Multiply;
 with Transition_Matrices.Primitive;
 with Transition_Matrices.SCC;
 with Transition_Matrices.Spectral_Radius_Helpers;
@@ -117,9 +117,9 @@ package body Test_Spectral_Radius is
       type Vector_Base is array (Positive range <>) of Long_Integer;
       subtype Vector_Type is Vector_Base (1 .. Matrix.Size);
 
-      procedure Iterate is new Transition_Matrices.Iterate
+      procedure Multiply is new Transition_Matrices.Multiply
         (Long_Integer, 0, Vector_Base);
-      --  Iterate the given vector using the transition matrix Matrix.
+      --  Multiply the given vector using the transition matrix Matrix.
 
       ----------------------
       -- Primitive_Action --
@@ -145,15 +145,15 @@ package body Test_Spectral_Radius is
          end loop;
 
          for Count in 1 .. Num_Power_Iterations * Period loop
-            Iterate (Input => Input, Output => Output, Matrix => Matrix);
+            Multiply (Input => Input, Output => Output, Matrix => Matrix);
             Input := Output;
          end loop;
 
          --  Our approximate Perron-Frobenious eigenvector.
          Start := Output;
-         --  Iterate it Period times.
+         --  Multiply it Period times.
          for Count in 1 .. Period loop
-            Iterate (Input => Input, Output => Output, Matrix => Matrix);
+            Multiply (Input => Input, Output => Output, Matrix => Matrix);
             Input := Output;
          end loop;
 

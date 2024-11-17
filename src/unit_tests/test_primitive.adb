@@ -1,6 +1,6 @@
 with GCD;
 with System;
-with Transition_Matrices.Iterate;
+with Transition_Matrices.Multiply;
 with Transition_Matrices.Primitive;
 with Transition_Matrices.SCC;
 
@@ -249,20 +249,20 @@ package body Test_Primitive is
       --  Compute the the gcd of the lengths of all cycles in the SCC in an
       --  inefficient but straightforward way.
 
-      procedure Iterate (Vec : in out Vector_Type);
-      --  Iterate the given vector using the transition matrix Matrix
+      procedure Multiply (Vec : in out Vector_Type);
+      --  Multiply the given vector using the transition matrix Matrix
       --  while performing sanity checks.
 
-      procedure Unchecked_Iterate is new Transition_Matrices.Iterate
+      procedure Unchecked_Multiply is new Transition_Matrices.Multiply
         (Integer, 0, Vector_Base);
-      --  Iterate the given vector using the transition matrix Matrix.
-      --  Helper for Iterate.
+      --  Multiply the given vector using the transition matrix Matrix.
+      --  Helper for Multiply.
 
-      -------------
-      -- Iterate --
-      -------------
+      --------------
+      -- Multiply --
+      --------------
 
-      procedure Iterate (Vec : in out Vector_Type) is
+      procedure Multiply (Vec : in out Vector_Type) is
          W : Vector_Type;
          R : Vector_Type;
       begin
@@ -274,15 +274,15 @@ package body Test_Primitive is
          for V of SCC loop
             W (V) := Vec (V);
          end loop;
-         Unchecked_Iterate (Vec, R, Matrix);
+         Unchecked_Multiply (Vec, R, Matrix);
          Vec := R;
-         Unchecked_Iterate (W, R, Matrix);
+         Unchecked_Multiply (W, R, Matrix);
          W := R;
          for V of SCC loop
             --  Paths that leave the SCC should never reenter it.
             pragma Assert (W (V) = Vec (V), "Not a SCC?");
          end loop;
-      end Iterate;
+      end Multiply;
 
       --------------------
       -- Compute_Period --
@@ -311,7 +311,7 @@ package body Test_Primitive is
                Vec (SCC (Node)) := 1;
 
                for Count in 1 .. SCC'Length loop
-                  Iterate (Vec);
+                  Multiply (Vec);
                   if Vec (SCC (Node)) /= 0 then
                      --  There is a path from Node to itself with length Count.
                      if Period_Has_Value then
@@ -360,7 +360,7 @@ package body Test_Primitive is
             Visited (V) := True;
          end loop;
          for I in 1 .. Period - 1 loop
-            Iterate (Vec);
+            Multiply (Vec);
 
             for V of SCC loop
                if Vec (V) > 0 then
@@ -374,7 +374,7 @@ package body Test_Primitive is
             pragma Assert (Visited (V), "Period too short");
          end loop;
 
-         Iterate (Vec);
+         Multiply (Vec);
          for V of Primitive loop
             Vec (V) := 0;
          end loop;
