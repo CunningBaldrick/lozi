@@ -139,8 +139,14 @@ package body Arnoldi is
          workd := new Vector (1 .. 3*n);
 
          iparam (1) := 1; -- ishift
+         iparam (2) := 0; -- no longer referenced
          iparam (3) := maxiter;
+         iparam (4) := 1; -- NB.  The code currently works only for NB = 1.
+         iparam (5) := 0; -- NCONV: number of "converged" Ritz values.
+         iparam (6) := 0; -- IUPD.  No longer referenced.
          iparam (7) := mode;
+         iparam (8) := 0; -- NP.  Not used by us.
+         iparam (9 .. 11) := (0, 0, 0); -- Output only.
 
          loop
             dnaupd (ido'Access, bmat, n'Access, which, nev'Access, tol'Access,
