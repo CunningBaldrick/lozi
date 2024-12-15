@@ -3,9 +3,10 @@ with Transition_Matrix_Rows;
 
 procedure Transition_Matrices.Primitive (
   Matrix : Transition_Matrix_Type;
-  SCC    : Vertex_List
+  SCC    : Vertices.Vertex_List
 ) is
    use Transition_Matrix_Rows;
+   use Vertices;
 
    Period : Natural := 0; -- 0 indicates "not set".
    --  Largest integer that divides the length of every loop in the subgraph.
@@ -19,7 +20,7 @@ procedure Transition_Matrices.Primitive (
    --  "Node" refers to rows/columns of the submatrix/subgraph given
    --  by SCC.
 
-   function Vertex (Node : Node_Index) return Positive;
+   function Vertex (Node : Node_Index) return Vertex_Number;
    --  Returning the original matrix vertex corresponding to this node of the
    --  submatrix.
 
@@ -39,7 +40,7 @@ procedure Transition_Matrices.Primitive (
       Period := GCD (Period, Jump);
    end Update_Period;
 
-   function Vertex (Node : Node_Index) return Positive is
+   function Vertex (Node : Node_Index) return Vertex_Number is
    begin
       return SCC (Integer (Node));
    end Vertex;
@@ -49,14 +50,14 @@ procedure Transition_Matrices.Primitive (
    --------------------
 
    procedure Visit_Children (Node : Node_Index) is
-      Last : Natural := 0;
+      Last : Extended_Vertex_Number := 0;
       --  Last value of Column passed to Dispatch.  Used for sanity checking.
 
       Next : Node_Index'Base := Node_Index'First;
       --  Previous matched column was smaller than Vertex (Next).
 
       procedure Dispatch (
-        Column : in     Positive;
+        Column : in     Vertex_Number;
         Stop   : in out Boolean
       ) is
          procedure Increment_Next is
@@ -123,7 +124,7 @@ begin
       return;
    end if;
 
-   pragma Assert ((for all I in SCC'Range => SCC (I) <= Matrix.Size),
+   pragma Assert ((for all I in SCC'Range => SCC (I) <= Matrix.Last_Row),
      "Vertex outside of matrix");
    pragma Assert ((for all I in SCC'First .. SCC'Last -1 =>
      SCC (I) < SCC (I + 1)), "SCC not ordered");

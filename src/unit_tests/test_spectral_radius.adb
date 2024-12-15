@@ -4,18 +4,18 @@ with Transition_Matrices.Multiply;
 with Transition_Matrices.Primitive;
 with Transition_Matrices.SCC;
 with Transition_Matrices.Spectral_Radius_Helpers;
+with Vertices;
 
 package body Test_Spectral_Radius is
 
    use IEEE;
    use Transition_Matrices;
    use Transition_Matrices.Spectral_Radius_Helpers;
+   use Vertices;
 
    Max_Systematic_Matrix_Size : constant := 4;
    Num_Power_Iterations : constant := 15;
    Arnoldi_Accuracy : constant Float := 0.0001;
-
-   subtype Vertex_List is Transition_Matrices.Vertex_List;
 
    procedure Validate (Matrix : Transition_Matrix_Type);
    --  Check that SCC followed by Primitive makes sense.
@@ -41,11 +41,13 @@ package body Test_Spectral_Radius is
           begin
              loop -- Executes 2 ** (Size^2) times.
                 declare
-                   M : Transition_Matrix_Type (Size);
+                   Last_Row : constant Extended_Vertex_Number
+                     := Extended_Vertex_Number (Size);
+                   M : Transition_Matrix_Type (Last_Row);
                 begin
-                   for I in 1 .. Size loop
-                      for J in 1 .. Size loop
-                         if Transitions ((I - 1) * Size + J) then
+                   for I in 1 .. Last_Row loop
+                      for J in 1 .. Last_Row loop
+                         if Transitions ((Integer (I) - 1) * Size + Integer (J)) then
                             Set_Transition (From => I, To => J, Matrix => M);
                          end if;
                       end loop;
@@ -97,7 +99,7 @@ package body Test_Spectral_Radius is
         Vertices : Vertex_List
       ) is null;
 
-      procedure Do_SCC is new SCC (Vertex_List, SCC_Action, Wander_Action);
+      procedure Do_SCC is new SCC (SCC_Action, Wander_Action);
    begin
       Do_SCC (Matrix);
    end Validate;
@@ -114,8 +116,8 @@ package body Test_Spectral_Radius is
         (1 .. System.Storage_Elements.Storage_Offset
           (Required_Storage_Length (Matrix)));
 
-      type Vector_Base is array (Positive range <>) of Long_Integer;
-      subtype Vector_Type is Vector_Base (1 .. Matrix.Size);
+      type Vector_Base is array (Vertex_Number range <>) of Long_Integer;
+      subtype Vector_Type is Vector_Base (1 .. Matrix.Last_Row);
 
       procedure Multiply is new Transition_Matrices.Multiply
         (Long_Integer, 0, Vector_Base);
@@ -241,7 +243,7 @@ package body Test_Spectral_Radius is
          end if;
       end Primitive_Action;
 
-      procedure Do_Primitive is new Primitive (Vertex_List, Primitive_Action);
+      procedure Do_Primitive is new Primitive (Primitive_Action);
    begin
       Do_Primitive (Matrix, SCC);
    end Validate_SCC;

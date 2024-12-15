@@ -1,13 +1,14 @@
 with Polygons; use Polygons;
 with Symbolics; use Symbolics;
+with Vertices;
 
 generic
    with procedure Action (
      From_Polygon : Polygon_Type;
-     From_Index   : Positive;
+     From_Index   : Vertices.Vertex_Number;
      From_Image   : Polygon_Type;
      To_Polygon   : Polygon_Type;
-     To_Index     : Positive;
+     To_Index     : Vertices.Vertex_Number;
      Total_Symbol : Sequence_Type
    );
 procedure Partition.Process_Transitions;

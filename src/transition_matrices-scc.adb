@@ -10,10 +10,11 @@ with Transition_Matrix_Rows;
 
 procedure Transition_Matrices.SCC (Matrix : Transition_Matrix_Type) is
    use Transition_Matrix_Rows;
+   use Vertices;
 
-   N : constant Natural := Matrix.Size; -- |V|
+   N : constant Natural := Natural (Matrix.Last_Row); -- |V|
 
-   subtype Vertices is Positive range 1 .. N; -- V
+   subtype Vertices is Vertex_Number range 1 .. Matrix.Last_Row; -- V
 
    type List is array (Vertices) of Natural;
    type List_Pointer is access List;
@@ -26,13 +27,16 @@ procedure Transition_Matrices.SCC (Matrix : Transition_Matrix_Type) is
       Root     : Boolean;--QQ eliminate
    end record;
 
-   type Call_Stack_Type is array (1 .. N) of Activation_Record;
+   type Extended_Stack_Index_Type is new Integer range 0 .. N;
+   subtype Stack_Index_Type is Extended_Stack_Index_Type
+     range 1 .. Extended_Stack_Index_Type'Last;
+   type Call_Stack_Type is array (Stack_Index_Type) of Activation_Record;
    type Call_Stack_Access is access Call_Stack_Type;
 
    Vertex_Stack : Vertex_List_Pointer;
 
    Call_Stack : Call_Stack_Access;
-   Call_Stack_Pointer : Natural;
+   Call_Stack_Pointer : Extended_Stack_Index_Type;
 
    rindex : List_Pointer;
    index  : Positive;
@@ -53,14 +57,14 @@ procedure Transition_Matrices.SCC (Matrix : Transition_Matrix_Type) is
      Vertex_List_Pointer
    );
 
-   function Has_Self_Edge (index : Positive) return Boolean;
+   function Has_Self_Edge (index : Vertex_Number) return Boolean;
    pragma Inline (Has_Self_Edge);
 
-   function Has_Self_Edge (index : Positive) return Boolean is
+   function Has_Self_Edge (index : Vertex_Number) return Boolean is
       Found : Boolean := False;
 
       procedure Compare_Column (
-        Column : in     Positive;
+        Column : in     Vertex_Number;
         Stop   : in out Boolean
       ) is
       begin
@@ -83,7 +87,7 @@ procedure Transition_Matrices.SCC (Matrix : Transition_Matrix_Type) is
 
    procedure Sort_Vertex_Stack (I, J : Positive) is
       Base : constant Natural := I - 1;
-      Temp : Positive;
+      Temp : Vertex_Number;
 
       procedure Move (From, To : Natural);
       pragma Inline (Move);
@@ -122,12 +126,12 @@ procedure Transition_Matrices.SCC (Matrix : Transition_Matrix_Type) is
    ----------
 
    procedure push (
-     v : in     Positive;
+     v : in     Vertex_Number;
      S : in out Natural
    );
 
    procedure push (
-     v : in     Positive;
+     v : in     Vertex_Number;
      S : in out Natural
    ) is
    begin
@@ -242,7 +246,7 @@ procedure Transition_Matrices.SCC (Matrix : Transition_Matrix_Type) is
                I := S;
                while I >= 1 and then rindex (Vertex) <= rindex (Vertex_Stack (I)) loop
                   declare
-                     w : Positive;
+                     w : Vertex_Number;
                   begin
                      --  Line 14
                      w := Vertex_Stack (I); -- w in SCC with Vertex

@@ -4,12 +4,14 @@ with Partition.Process_Transitions;
 with Points;
 with Polygons;
 with Symbolics;
+with Vertices;
 
 procedure Partition.Refine is
    use Lozi;
    use Points;
    use Polygons;
    use Symbolics;
+   use Vertices;
 
    First_New, Last_New : Element_Pointer;
 
@@ -27,19 +29,19 @@ procedure Partition.Refine is
 
    procedure Action (
      From_Polygon : Polygon_Type;
-     From_Index   : Positive;
+     From_Index   : Vertex_Number;
      From_Image   : Polygon_Type;
      To_Polygon   : Polygon_Type;
-     To_Index     : Positive;
+     To_Index     : Vertex_Number;
      Total_Symbol : Sequence_Type
    );
 
    procedure Action (
      From_Polygon : Polygon_Type;
-     From_Index   : Positive;
+     From_Index   : Vertex_Number;
      From_Image   : Polygon_Type;
      To_Polygon   : Polygon_Type;
-     To_Index     : Positive;
+     To_Index     : Vertex_Number;
      Total_Symbol : Sequence_Type
    ) is
       pragma Unreferenced (From_Polygon, From_Index, To_Polygon, To_Index);

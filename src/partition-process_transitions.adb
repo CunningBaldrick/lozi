@@ -3,14 +3,15 @@ with Lozi;
 
 procedure Partition.Process_Transitions is
    use Lozi;
+   use Vertices;
 
    Previous_Element : Element_Pointer := Get_First;
-   Previous_Index   : Natural := 1;
+   Previous_Index   : Extended_Vertex_Number := 1;
 
    procedure Find_Target (
      Symbol_Sequence : in     Sequence_Type;
      Target_Element  :    out Element_Pointer;
-     Target_Index    :    out Positive
+     Target_Index    :    out Vertex_Number
    );
    --  Finds the first element with symbol sequence greater than or equal to
    --  Symbol_Sequence.  If there is none, then the first element is returned.
@@ -18,7 +19,7 @@ procedure Partition.Process_Transitions is
    procedure Find_Target (
      Symbol_Sequence : in     Sequence_Type;
      Target_Element  :    out Element_Pointer;
-     Target_Index    :    out Positive
+     Target_Index    :    out Vertex_Number
    ) is
    begin
       --  This search method is intended to be efficient if the
@@ -47,7 +48,7 @@ procedure Partition.Process_Transitions is
    end Find_Target;
 
    Current_Element : Element_Pointer := Get_First;
-   Current_Index   : Positive := 1;
+   Current_Index   : Vertex_Number := 1;
 begin
    while Current_Element /= null loop
       declare
@@ -63,8 +64,8 @@ begin
          Right_Sequence : constant Sequence_Type := Cut_Sequence & R;
          Left_Element   : Element_Pointer;
          Right_Element  : Element_Pointer;
-         Left_Index     : Positive;
-         Right_Index    : Positive;
+         Left_Index     : Vertex_Number;
+         Right_Index    : Vertex_Number;
          Left_Exists    : Boolean;
          Right_Exists   : Boolean;
       begin

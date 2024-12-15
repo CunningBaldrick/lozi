@@ -1,14 +1,14 @@
-generic
-  type Vertex_List is array (Natural range <>) of Positive;
+with Vertices;
 
+generic
   with procedure SCC_Action (
     Matrix   : Transition_Matrix_Type;
-    Vertices : Vertex_List
+    Vertices : Standard.Vertices.Vertex_List
   );
 
   with procedure Wander_Action (
     Matrix   : Transition_Matrix_Type;
-    Vertices : Vertex_List
+    Vertices : Standard.Vertices.Vertex_List
   );
 procedure Transition_Matrices.SCC (Matrix : Transition_Matrix_Type);
 pragma Elaborate_Body (Transition_Matrices.SCC);

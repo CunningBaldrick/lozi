@@ -10,6 +10,7 @@ package body Transition_Matrices.Spectral_Radius is
    use IEEE;
    use Spectral_Radius_Helpers;
    use System.Storage_Elements;
+   use Vertices;
 
    type Work_Pointer is access Storage_Array;
 
@@ -95,7 +96,7 @@ package body Transition_Matrices.Spectral_Radius is
          end Process_Primitive;
 
          procedure Decycle is new Transition_Matrices.Primitive
-           (Vertex_List, Process_Primitive);
+           (Process_Primitive);
          --  Finds the period of the irreducible component and a set of nodes
          --  forming a primitive component of that period, and uses those to
          --  estimate the spectral-radius of the strongly connected component.
@@ -109,7 +110,6 @@ package body Transition_Matrices.Spectral_Radius is
       ) is null;
 
       procedure Decompose is new Transition_Matrices.SCC (
-         Vertex_List   => Vertex_List,
          SCC_Action    => Process_SCC,
          Wander_Action => Process_Wandering_Vertices
       );

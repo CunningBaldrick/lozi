@@ -2,6 +2,8 @@ with Ada.Unchecked_Deallocation;
 
 package body Transition_Matrix_Rows is
 
+   use Vertices;
+
    Minimum_Heap_Size : constant := 10;
 
    procedure Free is new Ada.Unchecked_Deallocation (Column_List, Column_List_Pointer);
@@ -33,7 +35,6 @@ package body Transition_Matrix_Rows is
       end if;
    end Ensure_Heap_Is_Big_Enough;
 
-
    -------------------
    -- Get_Last_Used --
    -------------------
@@ -57,7 +58,6 @@ package body Transition_Matrix_Rows is
       Heap  := Integer'Max (Row.Non_Zeros - Row.On_Stack'Last, 0);
    end Get_Last_Used;
 
-
    ---------------
    -- Clear_All --
    ---------------
@@ -68,14 +68,13 @@ package body Transition_Matrix_Rows is
       Row.Non_Zeros := 0;
    end Clear_All;
 
-
    ------------------
    -- Clear_Column --
    ------------------
 
    procedure Clear_Column (
      Row    : in out Matrix_Row;
-     Column : in     Positive
+     Column : in     Vertex_Number
    ) is
       Stack_Last, Heap_Last : Natural;
    begin
@@ -130,14 +129,13 @@ package body Transition_Matrix_Rows is
       end loop;
    end Clear_Column;
 
-
    -------------------
    -- Column_Is_Set --
    -------------------
 
    function Column_Is_Set (
      Row    : Matrix_Row;
-     Column : Positive
+     Column : Vertex_Number
    ) return Boolean is
       Stack_Last, Heap_Last : Natural;
    begin
@@ -168,14 +166,13 @@ package body Transition_Matrix_Rows is
       return False;
    end Column_Is_Set;
 
-
    ----------------
    -- Set_Column --
    ----------------
 
    procedure Set_Column (
      Row    : in out Matrix_Row;
-     Column : in     Positive
+     Column : in     Vertex_Number
    ) is
       Stack_Last, Heap_Last : Natural;
    begin
@@ -242,7 +239,6 @@ package body Transition_Matrix_Rows is
       Row.Non_Zeros := Row.Non_Zeros + 1;
    end Set_Column;
 
-
    ----------------------------
    -- Visit_Non_Zero_Columns --
    ----------------------------
@@ -266,7 +262,6 @@ package body Transition_Matrix_Rows is
       end loop;
    end Visit_Non_Zero_Columns;
 
-
    ----------------
    -- Get_Column --
    ----------------
@@ -274,7 +269,7 @@ package body Transition_Matrix_Rows is
    function Get_Column (
      Row      : Matrix_Row;
      Position : Cursor
-   ) return Positive is
+   ) return Vertex_Number is
    begin
       if Position > 0 then
          return Row.On_Stack (Positive (Position));
@@ -284,7 +279,6 @@ package body Transition_Matrix_Rows is
          raise Constraint_Error with "Invalid column";
       end if;
    end Get_Column;
-
 
    ---------------
    -- Get_First --
@@ -302,7 +296,6 @@ package body Transition_Matrix_Rows is
          return 0;
       end if;
    end Get_First;
-
 
    --------------
    -- Get_Next --
@@ -333,7 +326,6 @@ package body Transition_Matrix_Rows is
          raise Constraint_Error with "Invalid column";
       end if;
    end Get_Next;
-
 
    ----------------
    -- Has_Column --

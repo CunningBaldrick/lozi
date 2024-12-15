@@ -1,14 +1,15 @@
 package body Transition_Matrices is
 
    use Transition_Matrix_Rows;
+   use Vertices;
 
    ----------------------
    -- Clear_Transition --
    ----------------------
 
    procedure Clear_Transition (
-     From   : in     Positive;
-     To     : in     Positive;
+     From   : in     Vertex_Number;
+     To     : in     Vertex_Number;
      Matrix : in out Transition_Matrix_Type
    ) is
    begin
@@ -21,8 +22,8 @@ package body Transition_Matrices is
    --------------------
 
    procedure Set_Transition (
-     From   : in     Positive;
-     To     : in     Positive;
+     From   : in     Vertex_Number;
+     To     : in     Vertex_Number;
      Matrix : in out Transition_Matrix_Type
    ) is
    begin
@@ -35,8 +36,8 @@ package body Transition_Matrices is
    -----------------------
 
    function Transition_Exists (
-     From   : Positive;
-     To     : Positive;
+     From   : Vertex_Number;
+     To     : Vertex_Number;
      Matrix : Transition_Matrix_Type
    ) return Boolean is
    begin

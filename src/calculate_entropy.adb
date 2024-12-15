@@ -300,9 +300,7 @@ begin
                      if Verbose then
                         Text_IO.Put_Line ("  <= Done");
                         Text_IO.New_Line;
-                        Text_IO.Put_Line (
-                          "  Size:" & Integer'Image (Matrix.Size)
-                        );
+                        Text_IO.Put_Line ("  Size:" & Matrix.Last_Row'Img);
                         Text_IO.New_Line;
                         Text_IO.Put_Line ("  => Computing spectral radius");
                         Text_IO.Flush;
@@ -410,9 +408,7 @@ begin
                      if Verbose then
                         Text_IO.Put_Line ("  <= Done");
                         Text_IO.New_Line;
-                        Text_IO.Put_Line (
-                          "  Size:" & Integer'Image (Matrix.Size)
-                        );
+                        Text_IO.Put_Line ("  Size:" & Matrix.Last_Row'Img);
                         Text_IO.New_Line;
                         Text_IO.Flush;
                      end if;

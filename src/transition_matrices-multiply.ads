@@ -1,7 +1,9 @@
+with Vertices;
+
 generic
    type Weight_Type is private; -- Might be integer or floating point.
    Zero : Weight_Type;
-   type Weight_Vector is array (Positive range <>) of Weight_Type;
+   type Weight_Vector is array (Vertices.Vertex_Number range <>) of Weight_Type;
    with function "+" (Left, Right : Weight_Type) return Weight_Type is <>;
 procedure Transition_Matrices.Multiply (
   Input  : in     Weight_Vector;

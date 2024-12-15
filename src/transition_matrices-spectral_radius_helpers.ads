@@ -1,5 +1,6 @@
 with Interfaces.Fortran;
 with System.Storage_Elements;
+with Vertices;
 
 package Transition_Matrices.Spectral_Radius_Helpers is
 
@@ -7,7 +8,7 @@ package Transition_Matrices.Spectral_Radius_Helpers is
    use type SSE.Storage_Count;
 
    function Required_Storage_Length (Matrix : Transition_Matrix_Type)
-     return SSE.Storage_Count is (4 * SSE.Storage_Count (Matrix.Size) *
+     return SSE.Storage_Count is (4 * SSE.Storage_Count (Matrix.Last_Row) *
        SSE.Storage_Count'Max (Interfaces.Fortran.Double_Precision
          'Max_Size_In_Storage_Elements, Long_Integer
            'Max_Size_In_Storage_Elements));
@@ -15,7 +16,7 @@ package Transition_Matrices.Spectral_Radius_Helpers is
 
    procedure Primitive_1x1_Unreduced (
      Matrix    : in     Transition_Matrix_Type;
-     Primitive : in     Vertex_List;
+     Primitive : in     Vertices.Vertex_List;
      Period    : in     Positive;
      Low, High :    out Float;
      Storage   :    out SSE.Storage_Array
@@ -26,7 +27,7 @@ package Transition_Matrices.Spectral_Radius_Helpers is
 
    procedure Primitive_2x2_Unreduced (
      Matrix    : in     Transition_Matrix_Type;
-     Primitive : in     Vertex_List;
+     Primitive : in     Vertices.Vertex_List;
      Period    : in     Positive;
      Low, High :    out Float;
      Storage   :    out SSE.Storage_Array
@@ -37,7 +38,7 @@ package Transition_Matrices.Spectral_Radius_Helpers is
 
    procedure Primitive_3x3_Or_Bigger_Unreduced (
      Matrix    : in     Transition_Matrix_Type;
-     Primitive : in     Vertex_List;
+     Primitive : in     Vertices.Vertex_List;
      Period    : in     Positive;
      Low, High :    out Float;
      Storage   :    out SSE.Storage_Array
@@ -53,7 +54,7 @@ package Transition_Matrices.Spectral_Radius_Helpers is
 
    procedure Primitive_Unreduced (
      Matrix    : in     Transition_Matrix_Type;
-     Primitive : in     Vertex_List;
+     Primitive : in     Vertices.Vertex_List;
      Period    : in     Positive;
      Low, High :    out Float;
      Storage   :    out SSE.Storage_Array

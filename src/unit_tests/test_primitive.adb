@@ -3,12 +3,12 @@ with System;
 with Transition_Matrices.Multiply;
 with Transition_Matrices.Primitive;
 with Transition_Matrices.SCC;
+with Vertices;
 
 package body Test_Primitive is
 
    use Transition_Matrices;
-
-   type Vertex_List is array (Natural range <>) of Positive;
+   use Vertices;
 
    procedure Check_One (
      Matrix   : Transition_Matrix_Type;
@@ -53,7 +53,7 @@ package body Test_Primitive is
          pragma Assert (Vertices = Expected_Vertices, "Wrong vertices");
       end Do_Check;
 
-      procedure Do_Primitive is new Primitive (Vertex_List, Do_Check);
+      procedure Do_Primitive is new Primitive (Do_Check);
    begin
       Do_Primitive (Matrix, Vertices);
       pragma Assert (Was_Checked, "Not called");
@@ -153,11 +153,13 @@ package body Test_Primitive is
           begin
              loop -- Executes 2 ** (Size^2) times.
                 declare
-                   M : Transition_Matrix_Type (Size);
+                   Last_Row : constant Extended_Vertex_Number
+                     := Extended_Vertex_Number (Size);
+                   M : Transition_Matrix_Type (Last_Row);
                 begin
-                   for I in 1 .. Size loop
-                      for J in 1 .. Size loop
-                         if Transitions ((I - 1) * Size + J) then
+                   for I in 1 .. Last_Row loop
+                      for J in 1 .. Last_Row loop
+                         if Transitions ((Integer (I) - 1) * Size + Integer (J)) then
                             Set_Transition (From => I, To => J, Matrix => M);
                          end if;
                       end loop;
@@ -197,7 +199,7 @@ package body Test_Primitive is
    --------------
 
    procedure Validate (Matrix : Transition_Matrix_Type) is
-      Visited : array (1 .. Matrix.Size) of Boolean := (others => False);
+      Visited : array (1 .. Matrix.Last_Row) of Boolean := (others => False);
 
       procedure Check_Disjoint (
         Matrix   : Transition_Matrix_Type;
@@ -228,7 +230,7 @@ package body Test_Primitive is
          Check_Disjoint (Matrix, Vertices);
       end Wander_Action;
 
-      procedure Do_SCC is new SCC (Vertex_List, SCC_Action, Wander_Action);
+      procedure Do_SCC is new SCC (SCC_Action, Wander_Action);
    begin
       Do_SCC (Matrix);
       pragma Assert (for all V of Visited => V);
@@ -242,8 +244,8 @@ package body Test_Primitive is
      Matrix  : Transition_Matrix_Type;
      SCC    : Vertex_List
    ) is
-      type Vector_Base is array (Positive range <>) of Integer;
-      subtype Vector_Type is Vector_Base (1 .. Matrix.Size);
+      type Vector_Base is array (Vertex_Number range <>) of Integer;
+      subtype Vector_Type is Vector_Base (1 .. Matrix.Last_Row);
 
       function Compute_Period return Positive;
       --  Compute the the gcd of the lengths of all cycles in the SCC in an
@@ -341,7 +343,7 @@ package body Test_Primitive is
         Primitive : Vertex_List;
         Period    : Positive
       ) is
-         Visited : array (1 .. Matrix.Size) of Boolean := (others => False);
+         Visited : array (1 .. Matrix.Last_Row) of Boolean := (others => False);
 
          Vec : Vector_Type;
       begin
@@ -383,7 +385,7 @@ package body Test_Primitive is
          end loop;
       end Primitive_Action;
 
-      procedure Do_Primitive is new Primitive (Vertex_List, Primitive_Action);
+      procedure Do_Primitive is new Primitive (Primitive_Action);
    begin
       Do_Primitive (Matrix, SCC);
       pragma Assert (Was_Called, "Primitive_Action not called");

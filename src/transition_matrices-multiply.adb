@@ -3,13 +3,14 @@ procedure Transition_Matrices.Multiply (
   Output :    out Weight_Vector;
   Matrix : in     Transition_Matrix_Type
 ) is
+   use Vertices;
 begin
    for I in Matrix.Rows'Range loop
       declare
          Sum : Weight_Type := Zero;
 
          procedure Accumulate (
-           Column : in     Positive;
+           Column : in     Vertex_Number;
            Stop   : in out Boolean
          ) is
             pragma Unreferenced (Stop);

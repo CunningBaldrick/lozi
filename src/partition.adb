@@ -1,6 +1,9 @@
 with Ada.Unchecked_Deallocation;
 
 package body Partition is
+
+   use Vertices;
+
    First_Element : Element_Pointer;
 
    procedure Free is new Ada.Unchecked_Deallocation (
@@ -11,6 +14,7 @@ package body Partition is
    -----------------
    -- Add_Element --
    -----------------
+
    procedure Add_Element (Element : Element_Type) is
       Current_Element : Element_Pointer := First_Element;
       Next_Element    : Element_Pointer;
@@ -65,6 +69,7 @@ package body Partition is
    --------------------
    -- Create_Element --
    --------------------
+
    function Create_Element (
      Polygon : Polygons.Polygon_Type;
      Symbols : Sequence_Type
@@ -82,6 +87,7 @@ package body Partition is
    -------------------------
    -- Delete_All_Elements --
    -------------------------
+
    procedure Delete_All_Elements is
       Current_Element : Element_Pointer := First_Element;
    begin
@@ -100,9 +106,10 @@ package body Partition is
    ---------------------
    -- Delete_Elements --
    ---------------------
-   procedure Delete_Elements (Indices : Index_List) is
+
+   procedure Delete_Elements (Indices : Vertex_List) is
       Current_Element : Element_Pointer := First_Element;
-      Current_Index   : Positive := 1;
+      Current_Index   : Vertex_Number := 1;
 
       Delete_Position : Positive := Indices'First;
 
@@ -139,6 +146,7 @@ package body Partition is
    ------------------------
    -- Element_Count --
    ------------------------
+
    --  Could maintain a count at all times, but is it worth it?
    --  Don't forget: Set_First would need calculate a new element count.
    function Element_Count return Natural is
@@ -156,6 +164,7 @@ package body Partition is
    ---------------
    -- Get_First --
    ---------------
+
    function Get_First return Element_Pointer is
    begin
       return First_Element;
@@ -164,6 +173,7 @@ package body Partition is
    -----------------
    -- Get_Polygon --
    -----------------
+
    function Get_Polygon (Element : Element_Type) return Polygon_Type is
    begin
       return Element.Polygon;
@@ -172,6 +182,7 @@ package body Partition is
    -----------------
    -- Get_Symbols --
    -----------------
+
    function Get_Symbols (Element : Element_Type) return Sequence_Type is
    begin
       return Element.Symbols;
@@ -180,6 +191,7 @@ package body Partition is
    ---------------
    -- Set_First --
    ---------------
+
    procedure Set_First (First_Element : Element_Pointer) is
    begin
       Partition.First_Element := First_Element;

@@ -1,3 +1,5 @@
+with Vertices;
+
 package Transition_Matrix_Rows is
    pragma Elaborate_Body;
 
@@ -12,24 +14,24 @@ package Transition_Matrix_Rows is
 
    procedure Clear_Column (
      Row    : in out Matrix_Row;
-     Column : in     Positive
+     Column : in     Vertices.Vertex_Number
    );
    --  Set the row entry for this column to zero.
 
    procedure Set_Column (
      Row    : in out Matrix_Row;
-     Column : in     Positive
+     Column : in     Vertices.Vertex_Number
    );
    --  Set the row entry for this column to one.
 
    function Column_Is_Set (
      Row    : Matrix_Row;
-     Column : Positive
+     Column : Vertices.Vertex_Number
    ) return Boolean;
 
    generic
       with procedure Action (
-        Column : in     Positive;
+        Column : in     Vertices.Vertex_Number;
         Stop   : in out Boolean
       );
    procedure Visit_Non_Zero_Columns (Row : Matrix_Row);
@@ -44,7 +46,7 @@ package Transition_Matrix_Rows is
    function Get_Column (
      Row      : Matrix_Row;
      Position : Cursor
-   ) return Positive;
+   ) return Vertices.Vertex_Number;
    pragma Inline (Get_Column);
    --  Return the column the cursor is currently pointing to.
 
@@ -64,7 +66,7 @@ package Transition_Matrix_Rows is
 
 private
 
-   type Column_List is array (Positive range <>) of Positive;
+   type Column_List is array (Positive range <>) of Vertices.Vertex_Number;
 
    type Column_List_Pointer is access Column_List;
 

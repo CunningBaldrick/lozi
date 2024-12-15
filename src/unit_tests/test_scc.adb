@@ -1,16 +1,19 @@
 with Ada.Text_IO;
 with Transition_Matrices.SCC;
+with Vertices;
 
 procedure Test_SCC is
    use Ada.Text_IO;
+   use Vertices;
 
    Max_Size : constant := 4; -- test all possible graphs with this many nodes or less.
 begin
-   for Size in 0 .. Max_Size loop
-      Put_Line ("Testing" & Integer'Image (Size) & " node graphs");
+   for Last_Row in Extended_Vertex_Number range 0 .. Max_Size loop
+      Put_Line ("Testing" & Last_Row'Img & " node graphs");
 
       declare
-         Matrix : array (1 .. Size, 1 .. Size) of Boolean := (others => (others => False));
+         Matrix : array (1 .. Last_Row, 1 .. Last_Row) of Boolean
+           := (others => (others => False));
       begin
       <<Test_Next>>
          --  Test the graph.
@@ -19,7 +22,7 @@ begin
 
             Next_SCC_Index : Positive := 1;
 
-            Nodes : array (1 .. Size) of Natural := (others => 0);
+            Nodes : array (1 .. Last_Row) of Natural := (others => 0);
 
             procedure SCC_Action (
               Matrix   : Transition_Matrix_Type;
@@ -57,8 +60,8 @@ begin
                   pragma Assert (Scheduled (Vertex));
 
                   declare
-                     Row : constant Positive := Vertices (Vertex);
-                     Column : Positive;
+                     Row : constant Vertex_Number := Vertices (Vertex);
+                     Column : Vertex_Number;
                   begin
                      for Target in Vertex_Index loop
                         Column := Vertices (Target);
@@ -93,8 +96,8 @@ begin
                   pragma Assert (Scheduled (Vertex));
 
                   declare
-                     Row : constant Positive := Vertices (Vertex);
-                     Column : Positive;
+                     Row : constant Vertex_Number := Vertices (Vertex);
+                     Column : Vertex_Number;
                   begin
                      for Target in Vertex_Index loop
                         Column := Vertices (Target);
@@ -122,11 +125,11 @@ begin
               Matrix   : Transition_Matrix_Type;
               Vertices : Vertex_List
             ) is
-               subtype Vertex_Index is Integer range 1 .. Size;
+               subtype Vertex_Index is Vertex_Number range 1 .. Last_Row;
 
                Scheduled : array (Vertex_Index) of Boolean;
-               Work_List : array (1 .. Size) of Vertex_Index;
-               Next_Work : Natural := 0;
+               Work_List : array (1 .. Last_Row) of Vertex_Index;
+               Next_Work : Extended_Vertex_Number := 0;
 
                Vertex : Vertex_Index;
             begin
@@ -149,8 +152,8 @@ begin
                      pragma Assert (Scheduled (Vertex));
 
                      declare
-                        Row : constant Positive := Vertex;
-                        Column : Positive;
+                        Row : constant Vertex_Number := Vertex;
+                        Column : Vertex_Number;
                      begin
                         for Target in Vertex_Index loop
                            Column := Target;
@@ -170,9 +173,10 @@ begin
                end loop;
             end Wander_Action;
 
-            procedure Calculate_SCC is new SCC (Vertex_List, SCC_Action, Wander_Action);
+            procedure Calculate_SCC is new SCC
+              (SCC_Action, Wander_Action);
 
-            TM : Transition_Matrix_Type (Size);
+            TM : Transition_Matrix_Type (Last_Row);
          begin
             for Row in Matrix'Range (1) loop
                for Column in Matrix'Range (2) loop

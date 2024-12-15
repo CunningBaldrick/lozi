@@ -9,6 +9,7 @@ package body Transition_Matrices.Spectral_Radius_Helpers is
 
    use IEEE;
    use Interfaces.Fortran;
+   use Vertices;
 
    Arnoldi_Extra_Multiplications : constant := 100;
    --  Number of extra multiplications to perform on approximate eigenvectors
@@ -19,15 +20,18 @@ package body Transition_Matrices.Spectral_Radius_Helpers is
    --  lot to find an approximate Perron-Frobenious eigenvector.  This is
    --  the number of multiplications to perform.
 
-   type Double_Work_Vector is array (Positive range <>) of Double_Precision;
-   type Long_Integer_Work_Vector is array (Positive range <>) of Long_Integer;
+   type Double_Work_Array is array (Positive range <>) of Double_Precision;
+   type Long_Integer_Work_Array is array (Positive range <>) of Long_Integer;
+
+   type Double_Vector is array (Vertex_Number range <>) of Double_Precision;
+   type Long_Integer_Vector is array (Vertex_Number range <>) of Long_Integer;
 
    procedure Multiply_Exact is new Transition_Matrices.Multiply
-     (Long_Integer, 0, Long_Integer_Work_Vector);
+     (Long_Integer, 0, Long_Integer_Vector);
    --  Multiply with perfect precision by using integers.
 
    procedure Multiply_Inexact is new Transition_Matrices.Multiply
-     (Double_Precision, 0.0, Double_Work_Vector);
+     (Double_Precision, 0.0, Double_Vector);
    --  Inexact multiplication using floating point numbers.
 
    function Modulus (X, Y : Double_Precision) return Double_Precision is
@@ -71,16 +75,18 @@ package body Transition_Matrices.Spectral_Radius_Helpers is
      Low, High :    out Float;
      Storage   :    out SSE.Storage_Array
    ) is
-      Long_Integer_Storage : Long_Integer_Work_Vector (1 .. 2 * Matrix.Size)
-        with Import, Address => Storage'Address;
+      Long_Integer_Storage : Long_Integer_Work_Array
+        (1 .. 2 * Integer (Matrix.Last_Row))
+          with Import, Address => Storage'Address;
 
-      subtype Long_Integer_Matrix_Vector is
-        Long_Integer_Work_Vector (1 .. Matrix.Size);
+      subtype Vector_Type is
+        Long_Integer_Vector (1 .. Matrix.Last_Row);
 
-      Input : Long_Integer_Matrix_Vector with Import;
+      Input : Vector_Type with Import;
       for Input'Address use Long_Integer_Storage (1)'Address;
-      Output : Long_Integer_Matrix_Vector with Import;
-      for Output'Address use Long_Integer_Storage (Matrix.Size + 1)'Address;
+      Output : Vector_Type with Import;
+      for Output'Address use Long_Integer_Storage
+        (Integer (Matrix.Last_Row) + 1)'Address;
 
       T11 : Long_Integer; -- Must be positive (primitive component).
    begin
@@ -122,16 +128,17 @@ package body Transition_Matrices.Spectral_Radius_Helpers is
      Low, High :    out Float;
      Storage   :    out SSE.Storage_Array
    ) is
-      Long_Integer_Storage : Long_Integer_Work_Vector (1 .. 2 * Matrix.Size)
-        with Import, Address => Storage'Address;
+      Long_Integer_Storage : Long_Integer_Work_Array
+        (1 .. 2 * Integer (Matrix.Last_Row))
+          with Import, Address => Storage'Address;
 
-      subtype Long_Integer_Matrix_Vector is
-        Long_Integer_Work_Vector (1 .. Matrix.Size);
+      subtype Vector_Type is Long_Integer_Vector (1 .. Matrix.Last_Row);
 
-      Input : Long_Integer_Matrix_Vector with Import;
+      Input : Vector_Type with Import;
       for Input'Address use Long_Integer_Storage (1)'Address;
-      Output : Long_Integer_Matrix_Vector with Import;
-      for Output'Address use Long_Integer_Storage (Matrix.Size + 1)'Address;
+      Output : Vector_Type with Import;
+      for Output'Address use Long_Integer_Storage
+        (Integer (Matrix.Last_Row) + 1)'Address;
 
       T11, T12, T21, T22 : Long_Integer; -- Must be non-negative.
       Discriminant : Long_Integer;
@@ -215,10 +222,11 @@ package body Transition_Matrices.Spectral_Radius_Helpers is
      Low, High :    out Float;
      Storage   :    out SSE.Storage_Array
    ) is
-      Double_Precision_Storage : Double_Work_Vector (1 .. 4 * Matrix.Size)
-        with Import, Address => Storage'Address;
+      Double_Precision_Storage : Double_Work_Array
+        (1 .. 4 * Integer (Matrix.Last_Row))
+          with Import, Address => Storage'Address;
 
-      subtype Double_Matrix_Vector is Double_Work_Vector (1 .. Matrix.Size);
+      subtype Big_Vector_Type is Double_Vector (1 .. Matrix.Last_Row);
 
       subtype Vector_Type is Arnoldi.Vector (1 .. Primitive'Length);
       --  A vector for the primitive component.
@@ -228,7 +236,7 @@ package body Transition_Matrices.Spectral_Radius_Helpers is
         Target :    out Vector_Type
       );
       --  Source and Target are vectors for the primitive component, so
-      --  may be much shorter than Matrix.Size.  This multiplies them using
+      --  may be much shorter than Matrix.Last_Row.  This multiplies them using
       --  the matrix from the primitive component to itself, which is the
       --  restriction of Matrix^Period to the primitive component.
 
@@ -243,16 +251,16 @@ package body Transition_Matrices.Spectral_Radius_Helpers is
          function Vertex (
            Primitive : Vertex_List;
            Index : Fortran_Integer
-         ) return Positive is
+         ) return Vertex_Number is
          begin
             return Primitive (Primitive'First + Positive (Index) - 1);
          end Vertex;
 
-         Input : Double_Matrix_Vector with Import;
+         Input : Big_Vector_Type with Import;
          for Input'Address use Double_Precision_Storage (1)'Address;
-         Output : Double_Matrix_Vector with Import;
+         Output : Big_Vector_Type with Import;
          for Output'Address use Double_Precision_Storage
-           (Matrix.Size + 1)'Address;
+           (Integer (Matrix.Last_Row) + 1)'Address;
       begin
          --  Turn the primitive component vector Source into a vector the size
          --  of the entire matrix, by putting zero for nodes outside of the
@@ -286,10 +294,10 @@ package body Transition_Matrices.Spectral_Radius_Helpers is
 
       Real_Part : Vector_Type with Import;
       for Real_Part'Address use Double_Precision_Storage
-        (2 * Matrix.Size + 1)'Address;
+        (2 * Integer (Matrix.Last_Row) + 1)'Address;
       Imaginary_Part : Vector_Type with Import;
       for Imaginary_Part'Address use Double_Precision_Storage
-        (3 * Matrix.Size + 1)'Address;
+        (3 * Integer (Matrix.Last_Row) + 1)'Address;
 
       Eigenvalue_R_P : Double_Precision;
       Eigenvalue_I_P : Double_Precision;

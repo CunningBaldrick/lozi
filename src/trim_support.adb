@@ -1,8 +1,13 @@
+with Partition;
+
 package body Trim_Support is
+
+   use Transition_Matrices;
+   use Vertices;
 
    procedure Null_Action (
      Matrix   : Transition_Matrix_Type;
-     Vertices : Index_List
+     Vertices : Vertex_List
    ) is
       pragma Unreferenced (Matrix, Vertices);
    begin
@@ -11,7 +16,7 @@ package body Trim_Support is
 
    procedure Delete_Wandering (
      Matrix   : Transition_Matrix_Type;
-     Vertices : Partition.Index_List
+     Vertices : Vertex_List
    ) is
       pragma Unreferenced (Matrix);
    begin

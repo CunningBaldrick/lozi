@@ -1,5 +1,6 @@
 with Polygons; use Polygons;
 with Symbolics; use Symbolics;
+with Vertices;
 
 --  Maintains a list of partition elements.  They need not actually form a
 --  partition of the space.  There must be at most one element with a given
@@ -36,9 +37,7 @@ package Partition is
 
    procedure Delete_All_Elements;
 
-   type Index_List is array (Natural range <>) of Positive;
-
-   procedure Delete_Elements (Indices : Index_List);
+   procedure Delete_Elements (Indices : Vertices.Vertex_List);
    --  The elements to be deleted, listed in increasing order.  Elements
    --  are numbered starting from 1.
 

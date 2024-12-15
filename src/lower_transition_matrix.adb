@@ -6,6 +6,7 @@ with Points;
 with Polygons;
 with Segments_Intersect;
 with Symbolics;
+with Vertices;
 
 function Lower_Transition_Matrix
   return Transition_Matrices.Transition_Matrix_Pointer is
@@ -14,8 +15,10 @@ function Lower_Transition_Matrix
    use Polygons;
    use Symbolics;
    use Transition_Matrices;
+   use Vertices;
 
-   Polygon_Count : constant Natural := Element_Count;
+   Polygon_Count : constant Extended_Vertex_Number
+     := Extended_Vertex_Number (Element_Count);
 
    type Side_Type;
 
@@ -24,23 +27,23 @@ function Lower_Transition_Matrix
    type Side_Type is record
       First  : Positive;
       Second : Positive;
-      Number : Positive;
+      Number : Vertex_Number;
       Next   : Side_Pointer;
    end record;
 
-   type Side_Array is array (Positive range <>) of Side_Pointer;
+   type Side_Array is array (Vertex_Number range <>) of Side_Pointer;
 
    type Side_Array_Pointer is access Side_Array;
 
    Polygon_Sides : Side_Array_Pointer := new Side_Array (1 .. Polygon_Count);
 
-   Last_Number : Natural := 0;
+   Last_Number : Extended_Vertex_Number := 0;
 
-   function Get_Number (Polygon_Index, Side_1, Side_2 : Positive)
-     return Positive;
+   function Get_Number (Polygon_Index : Vertex_Number;
+     Side_1, Side_2 : Positive) return Vertex_Number;
 
-   function Get_Number (Polygon_Index, Side_1, Side_2 : Positive)
-     return Positive is
+   function Get_Number (Polygon_Index : Vertex_Number;
+     Side_1, Side_2 : Positive) return Vertex_Number is
       Side : Side_Pointer := Polygon_Sides (Polygon_Index);
       First_Side : constant Positive := Positive'Min (Side_1, Side_2);
       Second_Side : constant Positive := Positive'Max (Side_1, Side_2);
@@ -67,26 +70,30 @@ function Lower_Transition_Matrix
    type Edge_Pointer is access Edge_Type;
 
    type Edge_Type is record
-      From : Positive;
-      To   : Positive;
+      From : Vertex_Number;
+      To   : Vertex_Number;
       Next : Edge_Pointer;
    end record;
 
    Edge_List : Edge_Pointer;
 
    procedure Add_Edge (
-     From_Index, From_Side_1, From_Side_2 : Positive;
-     To_Index,   To_Side_1,   To_Side_2   : Positive
+     From_Index : Vertex_Number;
+     From_Side_1, From_Side_2 : Positive;
+     To_Index : Vertex_Number;
+     To_Side_1, To_Side_2 : Positive
    );
    pragma Inline (Add_Edge);
 
    procedure Add_Edge (
-     From_Index, From_Side_1, From_Side_2 : Positive;
-     To_Index,   To_Side_1,   To_Side_2   : Positive
+     From_Index : Vertex_Number;
+     From_Side_1, From_Side_2 : Positive;
+     To_Index : Vertex_Number;
+     To_Side_1, To_Side_2 : Positive
    ) is
-      From_Number : constant Positive :=
+      From_Number : constant Vertex_Number :=
         Get_Number (From_Index, From_Side_1, From_Side_2);
-      To_Number : constant Positive :=
+      To_Number : constant Vertex_Number :=
         Get_Number (To_Index, To_Side_1, To_Side_2);
    begin
       Edge_List := new Edge_Type'(
@@ -98,19 +105,19 @@ function Lower_Transition_Matrix
 
    procedure Action (
      From_Polygon : Polygon_Type;
-     From_Index   : Positive;
+     From_Index   : Vertex_Number;
      From_Image   : Polygon_Type;
      To_Polygon   : Polygon_Type;
-     To_Index     : Positive;
+     To_Index     : Vertex_Number;
      Total_Symbol : Sequence_Type
    );
 
    procedure Action (
      From_Polygon : Polygon_Type;
-     From_Index   : Positive;
+     From_Index   : Vertex_Number;
      From_Image   : Polygon_Type;
      To_Polygon   : Polygon_Type;
-     To_Index     : Positive;
+     To_Index     : Vertex_Number;
      Total_Symbol : Sequence_Type
    ) is
       pragma Unreferenced (Total_Symbol);
