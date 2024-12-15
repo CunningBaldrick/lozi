@@ -389,7 +389,10 @@ package body Transition_Matrices.Spectral_Radius_Helpers is
 
          Epsilon := Relax_Tolerance_By_On_Fail * Epsilon;
 
-         exit when Epsilon > Worst_Epsilon;
+         if Epsilon > Worst_Epsilon then
+            Ada.Text_IO.Put_Line ("    Falling back on power method");
+            exit;
+         end if;
       end loop;
 
       --  Improve the estimate by multiplying a few (!) times.
