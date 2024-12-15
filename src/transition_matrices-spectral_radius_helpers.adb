@@ -1,4 +1,5 @@
 with Ada.Exceptions;
+with Ada.Numerics.Generic_Elementary_Functions;
 with Ada.Text_IO;
 with Arnoldi;
 with IEEE;
@@ -19,6 +20,20 @@ package body Transition_Matrices.Spectral_Radius_Helpers is
    --  If the Arnoldi method fails then we fall back on just multiplying a
    --  lot to find an approximate Perron-Frobenious eigenvector.  This is
    --  the number of multiplications to perform.
+
+   package Double_Functions is new
+     Ada.Numerics.Generic_Elementary_Functions (Double_Precision);
+   --  In general you don't want to use these because they don't do/support
+   --  proper rounding.  Here they are only used to calculate Best_Epsilon.
+
+   Best_Epsilon : constant Double_Precision
+     := Double_Functions.Sqrt (Double_Precision'Model_Epsilon);
+   Relax_Tolerance_By_On_Fail : constant := 16.0;
+   Worst_Epsilon : constant Double_Precision
+     := Double_Precision (Sqrt (Float'Model_Epsilon, To_Nearest));
+   --  We first try to find an extremal eigenvector to precision Best_Epsilon,
+   --  but if that doesn't work then we relax the precision by a factor of
+   --  Relax_Tolerance_By_On_Fail and try again until Worst_Epsilon is reached.
 
    type Double_Work_Array is array (Positive range <>) of Double_Precision;
    type Long_Integer_Work_Array is array (Positive range <>) of Long_Integer;
@@ -302,7 +317,7 @@ package body Transition_Matrices.Spectral_Radius_Helpers is
       Eigenvalue_R_P : Double_Precision;
       Eigenvalue_I_P : Double_Precision;
 
-      Epsilon : constant Double_Precision := Float'Model_Epsilon;
+      Epsilon : Double_Precision;
 
       Multiplications : Positive := Arnoldi_Extra_Multiplications;
    begin
@@ -338,37 +353,50 @@ package body Transition_Matrices.Spectral_Radius_Helpers is
       --  the vector with components |w|_i = |w_i|.
 
       --  Find an extremal eigenvector
-      begin
-         Compute_Eigenvector (
-           First          => Vector_Type'First,
-           Last           => Vector_Type'Last,
-           Real_Part      => Real_Part,
-           Imaginary_Part => Imaginary_Part,
-           Eigenvalue_R_P => Eigenvalue_R_P,
-           Eigenvalue_I_P => Eigenvalue_I_P,
-           Tolerance      => Epsilon
-         );
+      Epsilon := Best_Epsilon;
+      loop
+         begin
+            Compute_Eigenvector (
+              First          => Vector_Type'First,
+              Last           => Vector_Type'Last,
+              Real_Part      => Real_Part,
+              Imaginary_Part => Imaginary_Part,
+              Eigenvalue_R_P => Eigenvalue_R_P,
+              Eigenvalue_I_P => Eigenvalue_I_P,
+              Tolerance      => Epsilon
+            );
 
-         --  Take absolute values
-         for I in Vector_Type'Range loop
-            Real_Part (I) := Modulus (Real_Part (I), Imaginary_Part (I));
-         end loop;
-      exception
-         when E : others =>
-            Ada.Text_IO.Put_Line ("    Arpack failed (" &
-              Ada.Exceptions.Exception_Message (E) &
-                ") - trying power method");
+            --  Take absolute values
             for I in Vector_Type'Range loop
-               Real_Part (I) := 1.0;
+               Real_Part (I) := Modulus (Real_Part (I), Imaginary_Part (I));
             end loop;
-            Multiplications := Power_Multiplications_If_Arnoldi_Failed;
-      end;
+
+            exit; -- Success
+         exception
+            when E : others =>
+               Ada.Text_IO.Put_Line ("    Arpack failed (" &
+                 Ada.Exceptions.Exception_Message (E) &
+                   ") at tolerance" & Epsilon'Image);
+               for I in Vector_Type'Range loop
+                  Real_Part (I) := 1.0;
+               end loop;
+
+               Multiplications := Power_Multiplications_If_Arnoldi_Failed;
+               --  Perform extra power multiplications even if Arnoldi succeeds
+               --  with a lower precision, in an attempt to boost the precision
+               --  back up again.
+         end;
+
+         Epsilon := Relax_Tolerance_By_On_Fail * Epsilon;
+
+         exit when Epsilon > Worst_Epsilon;
+      end loop;
 
       --  Improve the estimate by multiplying a few (!) times.
       for J in 1 .. Multiplications loop
          Multiply (Real_Part, Real_Part);
          declare
-            Max : Double_Precision := Epsilon;
+            Max : Double_Precision := Best_Epsilon;
          begin
             for I in Vector_Type'Range loop
                if Real_Part (I) > Max then
@@ -382,7 +410,7 @@ package body Transition_Matrices.Spectral_Radius_Helpers is
          end;
       end loop;
 
-      --  High: we add Epsilon to each component
+      --  High: we add Best_Epsilon to each component
       declare
          Rounding : Rounding_Section (Upwards) with Unreferenced;
 
@@ -395,13 +423,13 @@ package body Transition_Matrices.Spectral_Radius_Helpers is
          pragma Volatile (Divisor);
       begin
          for I in Vector_Type'Range loop
-            Imaginary_Part (I) := Real_Part (I) + Epsilon;
+            Imaginary_Part (I) := Real_Part (I) + Best_Epsilon;
          end loop;
 
          Multiply (Imaginary_Part, Imaginary_Part);
 
          for I in Vector_Type'Range loop
-            Divisor := Real_Part (I) + Epsilon;
+            Divisor := Real_Part (I) + Best_Epsilon;
             Estimate := Double_Precision'Max (
               Estimate,
               Imaginary_Part (I) / Divisor
@@ -411,7 +439,7 @@ package body Transition_Matrices.Spectral_Radius_Helpers is
          High := Float (Estimate);
       end;
 
-      --  Low: we set any component less than Epsilon to zero
+      --  Low: we set any component less than Best_Epsilon to zero
       declare
          Rounding : Rounding_Section (Downwards) with Unreferenced;
 
@@ -419,7 +447,7 @@ package body Transition_Matrices.Spectral_Radius_Helpers is
          Estimate_Set : Boolean := False;
       begin
          for I in Vector_Type'Range loop
-            if Real_Part (I) > Epsilon then
+            if Real_Part (I) > Best_Epsilon then
                Imaginary_Part (I) := Real_Part (I);
             else
                Imaginary_Part (I) := 0.0;
@@ -429,7 +457,7 @@ package body Transition_Matrices.Spectral_Radius_Helpers is
          Multiply (Imaginary_Part, Imaginary_Part);
 
          for I in Vector_Type'Range loop
-            if Real_Part (I) > Epsilon then
+            if Real_Part (I) > Best_Epsilon then
                if Estimate_Set then
                   Estimate := Double_Precision'Min (
                     Estimate,
