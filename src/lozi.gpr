@@ -1,7 +1,7 @@
 project Lozi is
    for Main use ("calculate_entropy.adb");
    for Languages use ("Ada", "C");
-   Common_Switches := ("-O3", "-fstack-clash-protection", "-g", "-flto");
+   Common_Switches := ("-O3", "-fstack-check", "-g", "-flto");
 --   Common_Switches := Common_Switches & ("-march=native");
    package Compiler is
       for Switches ("Ada") use Common_Switches & ("-gnatwa");
