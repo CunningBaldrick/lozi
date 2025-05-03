@@ -26,8 +26,10 @@ package body Transition_Matrices.Spectral_Radius_Helpers is
    --  In general you don't want to use these because they don't do/support
    --  proper rounding.  Here they are only used to calculate Best_Epsilon.
 
+   Super_Small : constant Double_Precision
+     := Double_Precision'Model_Epsilon;
    Best_Epsilon : constant Double_Precision
-     := Double_Functions.Sqrt (Double_Precision'Model_Epsilon);
+     := Double_Functions.Sqrt (Super_Small);
    Relax_Tolerance_By_On_Fail : constant := 16.0;
    Worst_Epsilon : constant Double_Precision
      := Double_Precision (Sqrt (Float'Model_Epsilon, To_Nearest));
@@ -395,9 +397,16 @@ package body Transition_Matrices.Spectral_Radius_Helpers is
          end if;
       end loop;
 
+      --  At this point the extremal eigenvector is stored in Real_Part,
+      --  leaving Imaginary_Part as a handy storage area.
+
       --  Improve the estimate by multiplying a few (!) times.
       for J in 1 .. Multiplications loop
-         Multiply (Real_Part, Real_Part);
+         --  Rescale the vector to have L-infinity norm 1.  This stops the
+         --  elements from growing to something enormous as we iterate, and
+         --  also brings the elements of the original extremal eigenvector,
+         --  which are often quite small, up to a decent size the first time
+         --  we get here.
          declare
             Max : Double_Precision := Best_Epsilon;
          begin
@@ -411,9 +420,11 @@ package body Transition_Matrices.Spectral_Radius_Helpers is
                Real_Part (I) := Real_Part (I) / Max;
             end loop;
          end;
+
+         Multiply (Real_Part, Real_Part);
       end loop;
 
-      --  High: we add Best_Epsilon to each component
+      --  High.  We add a tiny value to each component in case it is zero.
       declare
          Rounding : Rounding_Section (Upwards) with Unreferenced;
 
@@ -426,13 +437,13 @@ package body Transition_Matrices.Spectral_Radius_Helpers is
          pragma Volatile (Divisor);
       begin
          for I in Vector_Type'Range loop
-            Imaginary_Part (I) := Real_Part (I) + Best_Epsilon;
+            Imaginary_Part (I) := Real_Part (I) + Super_Small;
          end loop;
 
          Multiply (Imaginary_Part, Imaginary_Part);
 
          for I in Vector_Type'Range loop
-            Divisor := Real_Part (I) + Best_Epsilon;
+            Divisor := Real_Part (I) + Super_Small;
             Estimate := Double_Precision'Max (
               Estimate,
               Imaginary_Part (I) / Divisor
@@ -442,7 +453,7 @@ package body Transition_Matrices.Spectral_Radius_Helpers is
          High := Float (Estimate);
       end;
 
-      --  Low: we set any component less than Best_Epsilon to zero
+      --  Low: we set any tiny components to zero
       declare
          Rounding : Rounding_Section (Downwards) with Unreferenced;
 
@@ -450,7 +461,7 @@ package body Transition_Matrices.Spectral_Radius_Helpers is
          Estimate_Set : Boolean := False;
       begin
          for I in Vector_Type'Range loop
-            if Real_Part (I) > Best_Epsilon then
+            if Real_Part (I) > Super_Small then
                Imaginary_Part (I) := Real_Part (I);
             else
                Imaginary_Part (I) := 0.0;
@@ -460,7 +471,7 @@ package body Transition_Matrices.Spectral_Radius_Helpers is
          Multiply (Imaginary_Part, Imaginary_Part);
 
          for I in Vector_Type'Range loop
-            if Real_Part (I) > Best_Epsilon then
+            if Real_Part (I) > Super_Small then
                if Estimate_Set then
                   Estimate := Double_Precision'Min (
                     Estimate,
