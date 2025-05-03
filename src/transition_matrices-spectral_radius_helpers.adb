@@ -408,7 +408,7 @@ package body Transition_Matrices.Spectral_Radius_Helpers is
          --  which are often quite small, up to a decent size the first time
          --  we get here.
          declare
-            Max : Double_Precision := Best_Epsilon;
+            Max : Double_Precision := Super_Small;
          begin
             for I in Vector_Type'Range loop
                if Real_Part (I) > Max then
