@@ -8,6 +8,7 @@ begin
    Put (Standard_Error, " [-v]");
    Put (Standard_Error, " A_Numerator A_Denominator");
    Put (Standard_Error, " B_Numerator B_Denominator");
+   Put (Standard_Error, " [C_Numerator C_Denominator]");
    Put (Standard_Error, " [desired accuracy]");
    New_Line (Standard_Error);
    Flush (Standard_Error);

@@ -11,6 +11,8 @@ package Lozi is
    Right_Halfspace : constant Point_Type;
 
    procedure Map (Point : in out Point_Type);
+   --  Skew lozi map: (x, y) -> (1 - a|x| + cx + by, x)
+   --  If c is zero then this is the traditional lozi map.
 
    procedure Map (Polygon : in out Polygon_Type);
    --  Warning: if the image of an edge is longer than or equal to half the
@@ -26,7 +28,9 @@ package Lozi is
      A_Numerator   : Integer_Type;
      A_Denominator : Integer_Type;
      B_Numerator   : Integer_Type;
-     B_Denominator : Integer_Type
+     B_Denominator : Integer_Type;
+     C_Numerator   : Integer_Type;
+     C_Denominator : Integer_Type
    );
    --  Raises Lozi_Error if both the numerator and denominator of A
    --  (respectively, B) are zero, or if both denominators are zero.

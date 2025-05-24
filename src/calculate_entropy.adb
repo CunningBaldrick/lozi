@@ -60,44 +60,60 @@ begin
    Process_Command_Line :
       declare
          First_Numeric_Parameter : Positive;
+         With_Accuracy : Boolean;
+         Skew_Lozi : Boolean;
+         Found : Boolean;
       begin
          if Command_Line.Argument_Count < 4 or
-            Command_Line.Argument_Count > 6 then
+            Command_Line.Argument_Count > 8 then
             Print_Usage;
             return;
          end if;
 
-         if Command_Line.Argument_Count = 4 then
+         if Command_Line.Argument (1) = "-v" then
+            Verbose := True;
+            First_Numeric_Parameter := 2;
+         else
+            Verbose := False;
             First_Numeric_Parameter := 1;
          end if;
 
-         if Command_Line.Argument_Count = 6 then
-            First_Numeric_Parameter := 2;
+         --  Work out from the argument count whether this is a skew lozi map
+         --  and whether there's an accuracy term.
+         Found := False;
+         for Accuracy in Boolean loop
+            for Skew in Boolean loop
+               if Command_Line.Argument_Count =
+                 (if Verbose then 1 else 0) +
+                 4 + -- Two for "A" plus two for "B"
+                 (if Skew then 2 else 0) + -- Two for "C"
+                 (if Accuracy then 1 else 0)
+               then
+                  if Found then
+                     raise Program_Error with "Ambiguous configuration";
+                  end if;
+                  With_Accuracy := Accuracy;
+                  Skew_Lozi := Skew;
+                  Found := True;
+               end if;
+            end loop;
+         end loop;
+         if not Found then
+            Print_Usage;
+            return;
          end if;
 
-         if Command_Line.Argument_Count = 5 then
-            if Command_Line.Argument (1) = "-v" then
-               First_Numeric_Parameter := 2;
-            else
-               First_Numeric_Parameter := 1;
-            end if;
-         end if;
-
-         if Command_Line.Argument (1) = "-v" then
-            Verbose := True;
-         else
-            Verbose := False;
-         end if;
-
-         if First_Numeric_Parameter + 4 <= Command_Line.Argument_Count then
+         if With_Accuracy then
             begin
                Accuracy := Float'Value (
-                 Command_Line.Argument (First_Numeric_Parameter + 4)
+                 Command_Line.Argument (Command_Line.Argument_Count)
                );
                if Accuracy < Float'Model_Epsilon then
                   Accuracy := Float'Model_Epsilon;
                end if;
                if Accuracy > 1.0 then
+                  Text_IO.Put_Line (Text_IO.Standard_Error,
+                    "Warning: accuracy lowered to 1.0");
                   Accuracy := 1.0;
                end if;
             exception
@@ -127,6 +143,8 @@ begin
                A_Denominator : Integer;
                B_Numerator   : Integer;
                B_Denominator : Integer;
+               C_Numerator   : Integer;
+               C_Denominator : Integer;
             begin
                begin
                   A_Numerator   := Integer'Value (
@@ -141,6 +159,17 @@ begin
                   B_Denominator := Integer'Value (
                     Command_Line.Argument (First_Numeric_Parameter + 3)
                   );
+                  if Skew_Lozi then
+                     C_Numerator   := Integer'Value (
+                       Command_Line.Argument (First_Numeric_Parameter + 4)
+                     );
+                     C_Denominator := Integer'Value (
+                       Command_Line.Argument (First_Numeric_Parameter + 5)
+                     );
+                  else
+                     C_Numerator := 0;
+                     C_Denominator := 1;
+                  end if;
                exception
                   when Constraint_Error =>
                      Text_IO.Put (Text_IO.Standard_Error, "Error: ");
@@ -156,7 +185,9 @@ begin
                     Integers.To_Integer_Type (A_Numerator),
                     Integers.To_Integer_Type (A_Denominator),
                     Integers.To_Integer_Type (B_Numerator),
-                    Integers.To_Integer_Type (B_Denominator)
+                    Integers.To_Integer_Type (B_Denominator),
+                    Integers.To_Integer_Type (C_Numerator),
+                    Integers.To_Integer_Type (C_Denominator)
                   );
                exception
                   when others =>
@@ -179,6 +210,11 @@ begin
                   Integer_Text_IO.Put (B_Numerator, Width => 0);
                   Text_IO.Put (" / ");
                   Integer_Text_IO.Put (B_Denominator, Width => 0);
+                  Text_IO.New_Line;
+                  Text_IO.Put ("C = ");
+                  Integer_Text_IO.Put (C_Numerator, Width => 0);
+                  Text_IO.Put (" / ");
+                  Integer_Text_IO.Put (C_Denominator, Width => 0);
                   Text_IO.New_Line;
                   Text_IO.Put ("Accuracy = ");
                   Float_Text_IO.Put (Accuracy, Aft => Num_Digits, Exp => 0);
