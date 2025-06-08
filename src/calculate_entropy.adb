@@ -6,7 +6,7 @@ with Ada.Text_IO;
 with Ada.Unchecked_Deallocation;
 with Arnoldi;
 with IEEE;
-with Integers;
+with Integers.IO;
 with Lower_Transition_Matrix;
 with Lozi;
 with Partition;
@@ -139,36 +139,36 @@ begin
 
          Get_Parameters :
             declare
-               A_Numerator   : Integer;
-               A_Denominator : Integer;
-               B_Numerator   : Integer;
-               B_Denominator : Integer;
-               C_Numerator   : Integer;
-               C_Denominator : Integer;
+               A_Numerator   : Integers.Integer_Type;
+               A_Denominator : Integers.Integer_Type;
+               B_Numerator   : Integers.Integer_Type;
+               B_Denominator : Integers.Integer_Type;
+               C_Numerator   : Integers.Integer_Type;
+               C_Denominator : Integers.Integer_Type;
             begin
                begin
-                  A_Numerator   := Integer'Value (
+                  A_Numerator   := Integers.IO.Parse (
                     Command_Line.Argument (First_Numeric_Parameter)
                   );
-                  A_Denominator := Integer'Value (
+                  A_Denominator := Integers.IO.Parse (
                     Command_Line.Argument (First_Numeric_Parameter + 1)
                   );
-                  B_Numerator   := Integer'Value (
+                  B_Numerator   := Integers.IO.Parse (
                     Command_Line.Argument (First_Numeric_Parameter + 2)
                   );
-                  B_Denominator := Integer'Value (
+                  B_Denominator := Integers.IO.Parse (
                     Command_Line.Argument (First_Numeric_Parameter + 3)
                   );
                   if Skew_Lozi then
-                     C_Numerator   := Integer'Value (
+                     C_Numerator   := Integers.IO.Parse (
                        Command_Line.Argument (First_Numeric_Parameter + 4)
                      );
-                     C_Denominator := Integer'Value (
+                     C_Denominator := Integers.IO.Parse (
                        Command_Line.Argument (First_Numeric_Parameter + 5)
                      );
                   else
-                     C_Numerator := 0;
-                     C_Denominator := 1;
+                     C_Numerator := Integers.Zero;
+                     C_Denominator := Integers.One;
                   end if;
                exception
                   when Constraint_Error =>
@@ -182,12 +182,12 @@ begin
 
                begin
                   Lozi.Set_Parameters (
-                    Integers.To_Integer_Type (A_Numerator),
-                    Integers.To_Integer_Type (A_Denominator),
-                    Integers.To_Integer_Type (B_Numerator),
-                    Integers.To_Integer_Type (B_Denominator),
-                    Integers.To_Integer_Type (C_Numerator),
-                    Integers.To_Integer_Type (C_Denominator)
+                    A_Numerator   => A_Numerator,
+                    A_Denominator => A_Denominator,
+                    B_Numerator   => B_Numerator,
+                    B_Denominator => B_Denominator,
+                    C_Numerator   => C_Numerator,
+                    C_Denominator => C_Denominator
                   );
                exception
                   when others =>
@@ -202,19 +202,19 @@ begin
                if Verbose then
                   Text_IO.Put_Line ("-- Parameters --");
                   Text_IO.Put ("A = ");
-                  Integer_Text_IO.Put (A_Numerator, Width => 0);
+                  Integers.IO.Put (A_Numerator);
                   Text_IO.Put (" / ");
-                  Integer_Text_IO.Put (A_Denominator, Width => 0);
+                  Integers.IO.Put (A_Denominator);
                   Text_IO.New_Line;
                   Text_IO.Put ("B = ");
-                  Integer_Text_IO.Put (B_Numerator, Width => 0);
+                  Integers.IO.Put (B_Numerator);
                   Text_IO.Put (" / ");
-                  Integer_Text_IO.Put (B_Denominator, Width => 0);
+                  Integers.IO.Put (B_Denominator);
                   Text_IO.New_Line;
                   Text_IO.Put ("C = ");
-                  Integer_Text_IO.Put (C_Numerator, Width => 0);
+                  Integers.IO.Put (C_Numerator);
                   Text_IO.Put (" / ");
-                  Integer_Text_IO.Put (C_Denominator, Width => 0);
+                  Integers.IO.Put (C_Denominator);
                   Text_IO.New_Line;
                   Text_IO.Put ("Accuracy = ");
                   Float_Text_IO.Put (Accuracy, Aft => Num_Digits, Exp => 0);
